@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>识字大战僵尸 - 修复版</title>
+    <title>识字大战僵尸 - 完美修复版</title>
     <style>
         :root {
             --lawn-green: #2ecc71;
@@ -19,10 +19,10 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            /* 使用 dvh 适配移动端动态地址栏，回退使用 vh */
+            /* 适配移动端高度 */
             height: 100vh;
             height: 100dvh;
-            background: #222;
+            background: #333; /* 网页背景深色，衬托草地 */
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
@@ -30,33 +30,32 @@
         /* --- 1. 上方：游戏区 (草坪) --- */
         #game-wrapper {
             width: 100%;
-            background: #000; /* 明确非游戏区为黑色 */
+            /* 移除之前的黑色背景和复杂定位，恢复简洁容器 */
             position: relative;
             overflow: hidden;
             display: flex;
-            justify-content: center; /* PC端居中 */
-            align-items: flex-start;
+            justify-content: center; /* 电脑端居中 */
             flex-shrink: 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             z-index: 10;
+            background: #222;
         }
 
         #lawn {
-            width: 900px; /* 逻辑宽度固定 */
-            height: 500px; /* 逻辑高度固定 */
+            width: 900px;
+            height: 500px;
             position: relative;
+            /* 恢复经典的草地背景逻辑 */
             background-image:
                 linear-gradient(var(--lawn-dark) 2px, transparent 2px),
                 linear-gradient(90deg, var(--lawn-dark) 2px, transparent 2px);
             background-size: 100px 100px;
             background-color: var(--lawn-green);
             cursor: crosshair;
-            transform-origin: top center; /* 默认从顶部中心缩放 */
-            border-bottom: 4px solid #1e8449; /* 草地底部边界 */
-            box-shadow: 0 0 20px rgba(0,0,0,0.8); /* 让草地凸显出来 */
+            transform-origin: top center; /* 默认中心缩放 */
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
-        /* 实体通用 */
+        /* 实体样式保持不变 */
         .entity {
             position: absolute; width: 80px; height: 80px; display: flex;
             align-items: center; justify-content: center; z-index: 2; pointer-events: none;
@@ -97,26 +96,29 @@
             background: var(--ui-bg);
             display: flex;
             align-items: center;
-            padding: 10px 20px;
+            padding: 8px 20px; /*稍微减小padding防止太高*/
             color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            /* 解决遮挡Bug：减少阴影扩散范围，确保不遮挡下方 */
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
             z-index: 20;
             justify-content: center;
             flex-wrap: wrap;
             gap: 15px;
             border-bottom: 4px solid #5d4037;
+            border-top: 2px solid #a1887f; /* 增加顶部边框区分游戏区 */
+            flex-shrink: 0; /* 防止被压缩 */
         }
 
         .score-box {
-            background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 5px;
-            font-size: 20px; border: 2px solid #ffd700;
+            background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 5px;
+            font-size: 18px; border: 2px solid #ffd700;
             display: flex; align-items: center; gap: 5px;
         }
 
-        .timer-box { font-size: 18px; color: #ddd; display: flex; align-items: center; gap: 5px; }
+        .timer-box { font-size: 16px; color: #ddd; display: flex; align-items: center; gap: 5px; }
 
         .card {
-            width: 60px; height: 70px; background: #eee; border-radius: 5px;
+            width: 55px; height: 65px; background: #eee; border-radius: 5px;
             cursor: pointer; display: flex; flex-direction: column; align-items: center;
             justify-content: center; position: relative; border: 2px solid #444;
             transition: transform 0.1s; overflow: hidden;
@@ -124,7 +126,7 @@
         .card.selected { border-color: yellow; box-shadow: 0 0 15px yellow; transform: scale(1.1); }
         .card.disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
         .card-cost { position: absolute; bottom: 2px; right: 2px; font-size: 12px; color: black; font-weight: bold; z-index: 2; text-shadow: 1px 1px 0 #fff;}
-        .card img { width: 45px; height: 45px; object-fit: contain; }
+        .card img { width: 40px; height: 40px; object-fit: contain; }
 
         .end-btn {
             background: #c0392b; color: white; border: 2px solid #e74c3c;
@@ -144,13 +146,14 @@
             align-items: center;
             justify-content: center;
             padding: 10px 20px;
-            /* 关键修复：增加底部 padding，防止手机浏览器工具栏遮挡内容 */
             padding-bottom: 80px;
             box-sizing: border-box;
             gap: 20px;
             position: relative;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* iOS丝滑滚动 */
+            -webkit-overflow-scrolling: touch;
+            /* 解决遮挡Bug：确保识字区内容有独立层级 */
+            z-index: 5;
         }
 
         .quiz-group-left { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; width: 180px; }
@@ -177,10 +180,7 @@
         .main-speaker-btn:active { transform: scale(0.95); box-shadow: none; }
 
         .options-container { width: 100%; }
-
-        .char-grid, .pinyin-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-        }
+        .char-grid, .pinyin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
         .option-btn-char {
             background: #3498db; color: white; border: none; padding: 0; font-size: 32px;
@@ -213,12 +213,11 @@
         .show-wrong { opacity: 1 !important; }
         .show-wrong #wrong-mark { transform: scale(1) !important; }
 
-        /* --- 遮罩层 (移动到最外层，Z-index 极高) --- */
+        /* 全屏遮罩 */
         .overlay-screen {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.95); display: flex; justify-content: center;
             align-items: center; flex-direction: column;
-            /* 关键修复：Z-index 必须高于道具栏(20) */
             z-index: 9999;
             color: white; padding: 20px; text-align: center;
         }
@@ -226,7 +225,6 @@
 
         .game-over-title { font-size: 40px; margin-bottom: 20px; font-weight: bold; color: #e74c3c; }
         .game-stats { font-size: 20px; margin-bottom: 20px; color: #f1c40f; }
-
         .review-box {
             background: rgba(255,255,255,0.1); width: 90%; max-width: 500px;
             border-radius: 10px; padding: 15px; margin-bottom: 20px;
@@ -238,7 +236,6 @@
             padding: 5px 12px; margin: 5px; border-radius: 15px; font-size: 18px;
             font-family: "KaiTi", "楷体", serif;
         }
-
         .start-btn {
             font-size: 24px; padding: 15px 40px;
             cursor: pointer; background: #fff; border: none; border-radius: 50px;
@@ -246,36 +243,31 @@
         }
         .start-btn:hover { transform: scale(1.05); }
 
-        /* --- 📱 移动端/竖屏 适配 --- */
+        /* --- 📱 移动端适配 --- */
         @media (max-width: 900px) {
-            /* 1. 游戏区自适应 */
             #game-wrapper {
-                width: 100%;
-                overflow: hidden;
-                justify-content: flex-start; /* 手机上从左开始，避免缩放后留白 */
-                background: #000;
+                justify-content: flex-start; /* 手机端靠左，配合缩放填满 */
             }
             #lawn {
-                transform-origin: top left; /* 手机上从左上角缩放 */
+                transform-origin: top left; /* 手机端从左上角缩放 */
             }
 
-            /* 2. 道具栏调整 */
             #top-bar {
                 justify-content: space-between;
                 padding: 5px 10px;
+                /* 修复遮挡：确保移动端道具栏高度合理 */
             }
             .score-box { font-size: 16px; padding: 5px 10px; min-width: auto; margin-right: 0; }
             .timer-box { font-size: 14px; margin-right: 0; }
             .plant-info { display: none; }
-            .card { width: 55px; height: 65px; margin-right: 5px; }
-            .end-btn { width: 100%; margin-top: 5px; font-size: 18px; padding: 12px; }
+            .card { width: 50px; height: 60px; margin-right: 5px; }
+            .end-btn { width: auto; font-size: 14px; padding: 6px 12px; margin-top: 0; flex-shrink: 0;}
 
-            /* 3. 识字区变为竖向 */
             #quiz-panel {
                 flex-direction: column;
                 align-items: stretch;
                 padding: 10px;
-                padding-bottom: 100px; /* 移动端底部留出更多空间 */
+                padding-bottom: 100px;
             }
             .quiz-group-left {
                 width: 100%;
@@ -287,7 +279,7 @@
             .quiz-group-center {
                 width: 100%;
                 justify-content: center;
-                margin-bottom: 15px;
+                margin-bottom: 10px;
             }
             .quiz-group-right {
                 width: 100%;
@@ -296,19 +288,17 @@
             .quiz-title { font-size: 20px; }
             .quiz-type-label { font-size: 14px; margin: 0; }
             .feedback-area { margin-top: 0; font-size: 14px; }
-            .option-btn-char { height: 70px; font-size: 36px; }
-            .option-btn-pinyin { height: 60px; font-size: 28px; }
-            .small-speaker { height: 60px; width: 60px; }
+            .option-btn-char { height: 60px; font-size: 32px; }
+            .option-btn-pinyin { height: 50px; font-size: 24px; }
+            .small-speaker { height: 50px; width: 50px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 移出到 body 直接子级，防止被道具栏遮挡 -->
     <div id="start-overlay" class="overlay-screen">
-        <h1>识字大战僵尸 (修复版)</h1>
+        <h1>识字大战僵尸 (复习版)</h1>
         <p>🧟 抵御僵尸 | 📝 趣味识字</p>
-        <p style="font-size:16px; color:#aaa; margin: 10px 0;">(请使用手机竖屏或电脑游玩)</p>
         <button class="start-btn" onclick="startGame()">开始游戏</button>
     </div>
 
@@ -324,13 +314,13 @@
         <button class="start-btn" onclick="location.reload()">重新挑战</button>
     </div>
 
-    <!-- 1. 游戏区 (顶部) -->
+    <!-- 1. 游戏区 -->
     <div id="game-wrapper">
         <div id="wave-message">💀 又一波僵尸来了！</div>
         <div id="lawn"></div>
     </div>
 
-    <!-- 2. 道具栏 (中间) -->
+    <!-- 2. 道具栏 -->
     <div id="top-bar">
         <div style="display:flex; align-items:center;">
             <div class="score-box">☀️ <span id="score">0</span></div>
@@ -345,10 +335,10 @@
             <span class="plant-info" style="color:white; margin-left:10px;">伤害25 攻速1.4s</span>
         </div>
 
-        <button class="end-btn" onclick="handleGameOver('manual')">🛑 结束游戏</button>
+        <button class="end-btn" onclick="handleGameOver('manual')">🛑 结束</button>
     </div>
 
-    <!-- 3. 识字区 (底部) -->
+    <!-- 3. 识字区 -->
     <div id="quiz-panel">
         <div id="wrong-overlay"><div id="wrong-mark">❌</div></div>
 
@@ -429,7 +419,7 @@
         const state = {
             score: 0,
             selectedPlant: null,
-            gridSize: 100, // 逻辑网格大小
+            gridSize: 100, // 逻辑网格
             rows: 5,
             cols: 9,
             plants: [],
@@ -468,25 +458,24 @@
         const elGoStats = document.getElementById('go-stats');
         const elGoReviewList = document.getElementById('go-review-list');
 
-        // --- 核心：屏幕适配逻辑 ---
+        // --- 核心：屏幕适配逻辑 (修复版) ---
         function resizeGameWindow() {
             const screenWidth = window.innerWidth;
             const logicalWidth = 900;
             const logicalHeight = 500;
 
             if (screenWidth < logicalWidth) {
+                // 手机端：缩放并从左上角对齐
                 state.gameScale = screenWidth / logicalWidth;
                 elLawn.style.transform = `scale(${state.gameScale})`;
-                // 手机端：从左上角开始缩放，确保填满屏幕宽度
                 elLawn.style.transformOrigin = 'top left';
-                elLawn.style.margin = '0'; // 移除可能存在的 margin
+                // 容器高度随缩放调整，避免下方留白
                 elGameWrapper.style.height = (logicalHeight * state.gameScale) + 'px';
             } else {
+                // 电脑端：不缩放，居中显示
                 state.gameScale = 1;
                 elLawn.style.transform = 'scale(1)';
-                // 电脑端：从顶部中心缩放（实际不缩放），并保持居中
                 elLawn.style.transformOrigin = 'top center';
-                elLawn.style.margin = '0 auto';
                 elGameWrapper.style.height = '500px';
             }
         }
@@ -509,7 +498,7 @@
         function handleGameOver(reason) {
             if (state.isGameOver) return;
             state.isGameOver = true;
-            elGameOverPanel.style.display = 'flex'; // 显示最高层级的 Overlay
+            elGameOverPanel.style.display = 'flex';
 
             let speakStr = "";
             if (reason === 'zombie') {
@@ -691,29 +680,24 @@
             }
         }
 
-        // 核心修正：支持缩放后的点击坐标映射
+        // 点击逻辑：支持缩放计算
         elLawn.addEventListener('click', (e) => {
             if (!state.selectedPlant || state.isGameOver) return;
 
             const rect = elLawn.getBoundingClientRect();
 
-            // 1. 获取点击相对于 lawn 左上角的像素位置
+            // 1. 计算相对于缩放后草地的坐标
             const clickX = e.clientX - rect.left;
             const clickY = e.clientY - rect.top;
 
-            // 关键修复：防止点击到草地之外的区域（如果 margin 或 padding 导致误触）
-            if (clickX < 0 || clickX > rect.width || clickY < 0 || clickY > rect.height) {
-                return;
-            }
-
-            // 2. 将视觉坐标映射回 900x500 的逻辑坐标
+            // 2. 映射回 900x500 的逻辑坐标
             const logicalX = (clickX / rect.width) * 900;
             const logicalY = (clickY / rect.height) * 500;
 
-            // 3. 计算行列
             const col = Math.floor(logicalX / state.gridSize);
             const row = Math.floor(logicalY / state.gridSize);
 
+            // 边界检查
             if (col < 0 || col >= state.cols || row < 0 || row >= state.rows) return;
 
             const exists = state.plants.find(p => p.row === row && p.col === col);
