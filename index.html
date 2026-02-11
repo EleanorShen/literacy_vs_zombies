@@ -679,7 +679,7 @@
             if (selected === currentQuestion.target) {
                 elFeedback.innerText = "✅ 答对了！";
                 elFeedback.className = "feedback-area correct";
-                addScore(30);
+                addScore(40);
                 state.correctCount++;
                 isProcessing = true;
                 setTimeout(generateQuestion, 800);
