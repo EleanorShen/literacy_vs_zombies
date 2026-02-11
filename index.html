@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>识字大战僵尸 - 移动适配版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>识字大战僵尸 - 修复版</title>
     <style>
         :root {
             --lawn-green: #2ecc71;
@@ -19,29 +19,31 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            /* 使用 dvh 适配移动端动态地址栏，回退使用 vh */
             height: 100vh;
+            height: 100dvh;
             background: #222;
             user-select: none;
-            -webkit-tap-highlight-color: transparent; /* 移除手机点击高亮 */
+            -webkit-tap-highlight-color: transparent;
         }
 
         /* --- 1. 上方：游戏区 (草坪) --- */
         #game-wrapper {
             width: 100%;
-            background: #333;
+            background: #000; /* 明确非游戏区为黑色 */
             position: relative;
             overflow: hidden;
             display: flex;
-            justify-content: center;
-            align-items: flex-start; /* 顶部对齐 */
-            flex-shrink: 0; /* 防止被压缩 */
+            justify-content: center; /* PC端居中 */
+            align-items: flex-start;
+            flex-shrink: 0;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             z-index: 10;
         }
 
         #lawn {
-            width: 900px;
-            height: 500px;
+            width: 900px; /* 逻辑宽度固定 */
+            height: 500px; /* 逻辑高度固定 */
             position: relative;
             background-image:
                 linear-gradient(var(--lawn-dark) 2px, transparent 2px),
@@ -49,7 +51,9 @@
             background-size: 100px 100px;
             background-color: var(--lawn-green);
             cursor: crosshair;
-            transform-origin: top center; /* 缩放基准点 */
+            transform-origin: top center; /* 默认从顶部中心缩放 */
+            border-bottom: 4px solid #1e8449; /* 草地底部边界 */
+            box-shadow: 0 0 20px rgba(0,0,0,0.8); /* 让草地凸显出来 */
         }
 
         /* 实体通用 */
@@ -98,7 +102,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.5);
             z-index: 20;
             justify-content: center;
-            flex-wrap: wrap; /* 允许换行适应手机 */
+            flex-wrap: wrap;
             gap: 15px;
             border-bottom: 4px solid #5d4037;
         }
@@ -129,21 +133,24 @@
         }
         .end-btn:active { transform: translateY(2px); box-shadow: none; }
 
-        .plant-info { font-size: 12px; opacity: 0.8; display: none; } /* 手机上隐藏详情 */
+        .plant-info { font-size: 12px; opacity: 0.8; display: none; }
 
         /* --- 3. 下方：识字挑战区 --- */
         #quiz-panel {
-            flex: 1; /* 占据剩余空间 */
+            flex: 1;
             background: var(--quiz-bg);
             display: flex;
             flex-direction: row;
             align-items: center;
             justify-content: center;
             padding: 10px 20px;
+            /* 关键修复：增加底部 padding，防止手机浏览器工具栏遮挡内容 */
+            padding-bottom: 80px;
             box-sizing: border-box;
             gap: 20px;
             position: relative;
-            overflow-y: auto; /* 手机竖屏内容多时可滚动 */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* iOS丝滑滚动 */
         }
 
         .quiz-group-left { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; width: 180px; }
@@ -206,12 +213,14 @@
         .show-wrong { opacity: 1 !important; }
         .show-wrong #wrong-mark { transform: scale(1) !important; }
 
-        /* 游戏结束/开始遮罩 */
-        #game-over, #start-overlay {
+        /* --- 遮罩层 (移动到最外层，Z-index 极高) --- */
+        .overlay-screen {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.95); display: flex; justify-content: center;
-            align-items: center; flex-direction: column; z-index: 200; color: white;
-            padding: 20px; text-align: center;
+            align-items: center; flex-direction: column;
+            /* 关键修复：Z-index 必须高于道具栏(20) */
+            z-index: 9999;
+            color: white; padding: 20px; text-align: center;
         }
         #game-over { display: none; }
 
@@ -241,13 +250,13 @@
         @media (max-width: 900px) {
             /* 1. 游戏区自适应 */
             #game-wrapper {
-                /* 高度由JS根据宽度等比计算设置 */
                 width: 100%;
                 overflow: hidden;
+                justify-content: flex-start; /* 手机上从左开始，避免缩放后留白 */
+                background: #000;
             }
             #lawn {
-                /* 缩放由JS控制 transform */
-                transform-origin: top left;
+                transform-origin: top left; /* 手机上从左上角缩放 */
             }
 
             /* 2. 道具栏调整 */
@@ -257,15 +266,16 @@
             }
             .score-box { font-size: 16px; padding: 5px 10px; min-width: auto; margin-right: 0; }
             .timer-box { font-size: 14px; margin-right: 0; }
-            .plant-info { display: none; } /* 隐藏详情文字 */
+            .plant-info { display: none; }
             .card { width: 55px; height: 65px; margin-right: 5px; }
-            .end-btn { width: 100%; margin-top: 5px; font-size: 18px; padding: 12px; } /* 结束按钮变大条 */
+            .end-btn { width: 100%; margin-top: 5px; font-size: 18px; padding: 12px; }
 
             /* 3. 识字区变为竖向 */
             #quiz-panel {
                 flex-direction: column;
                 align-items: stretch;
                 padding: 10px;
+                padding-bottom: 100px; /* 移动端底部留出更多空间 */
             }
             .quiz-group-left {
                 width: 100%;
@@ -286,7 +296,7 @@
             .quiz-title { font-size: 20px; }
             .quiz-type-label { font-size: 14px; margin: 0; }
             .feedback-area { margin-top: 0; font-size: 14px; }
-            .option-btn-char { height: 70px; font-size: 36px; } /* 增大按钮 */
+            .option-btn-char { height: 70px; font-size: 36px; }
             .option-btn-pinyin { height: 60px; font-size: 28px; }
             .small-speaker { height: 60px; width: 60px; }
         }
@@ -294,30 +304,30 @@
 </head>
 <body>
 
-    <div id="start-overlay">
-        <h1>识字大战僵尸 (移动适配版)</h1>
+    <!-- 移出到 body 直接子级，防止被道具栏遮挡 -->
+    <div id="start-overlay" class="overlay-screen">
+        <h1>识字大战僵尸 (修复版)</h1>
         <p>🧟 抵御僵尸 | 📝 趣味识字</p>
         <p style="font-size:16px; color:#aaa; margin: 10px 0;">(请使用手机竖屏或电脑游玩)</p>
         <button class="start-btn" onclick="startGame()">开始游戏</button>
+    </div>
+
+    <div id="game-over" class="overlay-screen">
+        <div class="game-over-title" id="go-title">游戏结束</div>
+        <div class="game-stats" id="go-stats">答对: 0</div>
+
+        <div class="review-box">
+            <div class="review-title">错题本 (本次做错的字)</div>
+            <div id="go-review-list" style="color: #fff;"></div>
+        </div>
+
+        <button class="start-btn" onclick="location.reload()">重新挑战</button>
     </div>
 
     <!-- 1. 游戏区 (顶部) -->
     <div id="game-wrapper">
         <div id="wave-message">💀 又一波僵尸来了！</div>
         <div id="lawn"></div>
-
-        <!-- 游戏结束面板 (居中显示) -->
-        <div id="game-over">
-            <div class="game-over-title" id="go-title">游戏结束</div>
-            <div class="game-stats" id="go-stats">答对: 0</div>
-
-            <div class="review-box">
-                <div class="review-title">错题本 (本次做错的字)</div>
-                <div id="go-review-list" style="color: #fff;"></div>
-            </div>
-
-            <button class="start-btn" onclick="location.reload()">重新挑战</button>
-        </div>
     </div>
 
     <!-- 2. 道具栏 (中间) -->
@@ -335,7 +345,6 @@
             <span class="plant-info" style="color:white; margin-left:10px;">伤害25 攻速1.4s</span>
         </div>
 
-        <!-- 结束按钮 (手机上会单独一行) -->
         <button class="end-btn" onclick="handleGameOver('manual')">🛑 结束游戏</button>
     </div>
 
@@ -358,7 +367,6 @@
 
         <div class="quiz-group-right">
             <div class="options-container" id="options-container"></div>
-            <!-- <div style="text-align: right; margin-top: 5px; color: #888; font-size:12px;">答对 +30 / 答错 -10</div> -->
         </div>
     </div>
 
@@ -421,7 +429,7 @@
         const state = {
             score: 0,
             selectedPlant: null,
-            gridSize: 100, // 逻辑网格大小，不受缩放影响
+            gridSize: 100, // 逻辑网格大小
             rows: 5,
             cols: 9,
             plants: [],
@@ -434,7 +442,7 @@
             waveLevel: 0,
             correctCount: 0,
             wrongAnswers: [],
-            gameScale: 1 // 当前缩放比例
+            gameScale: 1
         };
 
         const elScore = document.getElementById('score');
@@ -466,36 +474,33 @@
             const logicalWidth = 900;
             const logicalHeight = 500;
 
-            // 如果屏幕比游戏逻辑宽度小，则缩放；否则保持原样（或居中）
             if (screenWidth < logicalWidth) {
                 state.gameScale = screenWidth / logicalWidth;
                 elLawn.style.transform = `scale(${state.gameScale})`;
-                elLawn.style.transformOrigin = 'top left'; // 必须左上角对齐才能无缝填充
+                // 手机端：从左上角开始缩放，确保填满屏幕宽度
+                elLawn.style.transformOrigin = 'top left';
+                elLawn.style.margin = '0'; // 移除可能存在的 margin
                 elGameWrapper.style.height = (logicalHeight * state.gameScale) + 'px';
             } else {
                 state.gameScale = 1;
                 elLawn.style.transform = 'scale(1)';
+                // 电脑端：从顶部中心缩放（实际不缩放），并保持居中
                 elLawn.style.transformOrigin = 'top center';
+                elLawn.style.margin = '0 auto';
                 elGameWrapper.style.height = '500px';
             }
         }
 
-        // 监听窗口大小改变
         window.addEventListener('resize', resizeGameWindow);
-        // 初始化一次
         resizeGameWindow();
 
 
         // --- 2. 游戏流程 ---
-
         function startGame() {
             document.getElementById('start-overlay').style.display = 'none';
             state.isGameStarted = true;
             state.startTime = Date.now();
-
-            // 确保尺寸正确
             resizeGameWindow();
-
             initQuiz();
             updateUI();
             requestAnimationFrame(gameLoop);
@@ -504,10 +509,9 @@
         function handleGameOver(reason) {
             if (state.isGameOver) return;
             state.isGameOver = true;
-            elGameOverPanel.style.display = 'flex';
+            elGameOverPanel.style.display = 'flex'; // 显示最高层级的 Overlay
 
             let speakStr = "";
-
             if (reason === 'zombie') {
                 elGoTitle.innerText = "🧠 脑子被吃掉了!";
                 speakStr += "哎呀，游戏失败。";
@@ -697,9 +701,12 @@
             const clickX = e.clientX - rect.left;
             const clickY = e.clientY - rect.top;
 
+            // 关键修复：防止点击到草地之外的区域（如果 margin 或 padding 导致误触）
+            if (clickX < 0 || clickX > rect.width || clickY < 0 || clickY > rect.height) {
+                return;
+            }
+
             // 2. 将视觉坐标映射回 900x500 的逻辑坐标
-            // 因为 rect.width 已经是缩放后的宽度，所以 (clickX / rect.width) 得到了百分比
-            // 再乘以 900 得到逻辑X
             const logicalX = (clickX / rect.width) * 900;
             const logicalY = (clickY / rect.height) * 500;
 
