@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>识字大战僵尸 - 完美适配版</title>
+    <title>识字大战僵尸 - 题型自选版</title>
     <style>
         :root {
             --lawn-green: #2ecc71;
@@ -20,7 +20,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            height: 100dvh; /* 适配手机动态地址栏高度 */
+            height: 100dvh;
             background: #222;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
@@ -29,49 +29,44 @@
         /* --- 1. 上方：游戏区 --- */
         #game-wrapper {
             width: 100%;
-            /* 关键：使用 flex 居中，溢出隐藏 */
             display: flex;
             justify-content: center;
             align-items: flex-start;
             overflow: hidden;
             background: #333;
             position: relative;
-            flex-shrink: 0; /* 禁止被挤压 */
+            flex-shrink: 0;
             z-index: 10;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
 
         #lawn {
-            width: 900px;  /* 锁定逻辑宽度 */
-            height: 500px; /* 锁定逻辑高度 */
+            width: 900px;
+            height: 500px;
             flex-shrink: 0;
             position: relative;
-            /* 经典草地样式 */
-            background-image: 
+            background-image:
                 linear-gradient(var(--lawn-dark) 2px, transparent 2px),
                 linear-gradient(90deg, var(--lawn-dark) 2px, transparent 2px);
             background-size: 100px 100px;
             background-color: var(--lawn-green);
             cursor: crosshair;
-            
-            /* 核心修复：永远从顶部中心开始缩放 */
-            transform-origin: top center; 
+            transform-origin: top center;
         }
 
-        /* 实体样式 */
         .entity {
             position: absolute; width: 80px; height: 80px; display: flex;
             align-items: center; justify-content: center; z-index: 2; pointer-events: none;
             flex-direction: column; justify-content: flex-end; padding-bottom: 5px;
         }
         .entity img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.4)); }
-        
-        .zombie-accessory { 
+
+        .zombie-accessory {
             position: absolute; top: -15px; left: 20px;
-            font-size: 40px; z-index: 5; 
+            font-size: 40px; z-index: 5;
             filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.5));
         }
-        
+
         .hp-bar-bg { position: absolute; top: -10px; width: 60px; height: 6px; background: #555; border-radius: 3px; overflow: hidden; z-index: 10;}
         .hp-bar-fill { height: 100%; width: 100%; transition: width 0.2s; }
         .hp-red { background: #e74c3c; }
@@ -100,7 +95,7 @@
             color: white;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             z-index: 20;
-            flex-wrap: wrap; 
+            flex-wrap: wrap;
             gap: 15px;
             border-bottom: 4px solid #5d4037;
             border-top: 2px solid #a1887f;
@@ -135,23 +130,21 @@
 
         /* --- 3. 下方：识字挑战区 --- */
         #quiz-panel {
-            flex: 1; 
+            flex: 1;
             background: var(--quiz-bg);
             display: flex;
             flex-direction: row;
             align-items: center;
             justify-content: center;
-            /* 修复遮挡：增加顶部 Padding */
-            padding: 20px 20px 80px 20px; 
+            padding: 20px 20px 80px 20px;
             box-sizing: border-box;
             gap: 20px;
             position: relative;
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch; 
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             z-index: 5;
         }
 
-        /* 顶部内阴影，增加层次感，防止文字看起来被切掉 */
         #quiz-panel::before {
             content: ""; position: absolute; top: 0; left: 0; right: 0; height: 10px;
             background: linear-gradient(to bottom, rgba(0,0,0,0.1), transparent);
@@ -167,7 +160,7 @@
         .feedback-area { font-size: 18px; font-weight: bold; margin-top: 5px; height: 25px; }
         .correct { color: green; }
 
-        .main-display { 
+        .main-display {
             font-size: 60px; color: #d35400; font-weight: bold;
             background: #fff; padding: 5px 20px; border-radius: 15px;
             box-shadow: 0 4px 0 #ddd; min-width: 100px; text-align: center;
@@ -197,7 +190,7 @@
             background: #9b59b6; color: white; border: none; height: 55px; font-size: 24px;
             border-radius: 10px; cursor: pointer; box-shadow: 0 4px 0 #8e44ad; font-weight: bold;
         }
-        
+
         .small-speaker {
             width: 50px; height: 55px; background: #f1c40f; border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
@@ -213,16 +206,16 @@
         .show-wrong { opacity: 1 !important; }
         .show-wrong #wrong-mark { transform: scale(1) !important; }
 
-        /* 全屏遮罩 */
+        /* --- Overlay Screen Styles --- */
         .overlay-screen {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.95); display: flex; justify-content: center;
-            align-items: center; flex-direction: column; 
-            z-index: 9999; 
+            align-items: center; flex-direction: column;
+            z-index: 9999;
             color: white; padding: 20px; text-align: center;
         }
         #game-over { display: none; }
-        
+
         .game-over-title { font-size: 40px; margin-bottom: 20px; font-weight: bold; color: #e74c3c; }
         .game-stats { font-size: 20px; margin-bottom: 20px; color: #f1c40f; }
         .review-box {
@@ -230,32 +223,50 @@
             border-radius: 10px; padding: 15px; margin-bottom: 20px;
             max-height: 25vh; overflow-y: auto; text-align: center;
         }
-        .review-item { 
-            display: inline-block; background: #eee; color: #333; 
+        .review-item {
+            display: inline-block; background: #eee; color: #333;
             padding: 5px 12px; margin: 5px; border-radius: 15px; font-size: 18px;
             font-family: "KaiTi", "楷体", serif;
         }
+
+        /* 模式选择样式 */
+        .mode-selection { margin: 20px 0; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; width: 100%; max-width: 400px; }
+        .mode-title { font-size: 18px; margin-bottom: 10px; color: #f1c40f; }
+        .mode-options-row { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .mode-checkbox-label {
+            display: flex; align-items: center; gap: 8px;
+            background: #444; padding: 10px 15px; border-radius: 8px;
+            cursor: pointer; border: 2px solid #666; transition: 0.2s;
+            user-select: none;
+        }
+        /* 隐藏原生 checkbox */
+        .mode-checkbox-label input { display: none; }
+        /* 选中状态 */
+        .mode-checkbox-label:has(input:checked) {
+            background: #2ecc71; border-color: #27ae60; color: #000; font-weight: bold;
+        }
+
         .start-btn {
-            font-size: 24px; padding: 15px 40px; 
+            font-size: 24px; padding: 15px 40px;
             cursor: pointer; background: #fff; border: none; border-radius: 50px;
-            font-weight: bold; color: #333; transition: transform 0.2s; margin-top: 20px;
+            font-weight: bold; color: #333; transition: transform 0.2s; margin-top: 10px;
         }
         .start-btn:hover { transform: scale(1.05); }
+        .error-msg { color: #e74c3c; margin-top: 10px; height: 20px; font-weight: bold; display:none;}
 
         /* --- 📱 移动端适配 CSS --- */
         @media (max-width: 900px) {
             #top-bar { justify-content: space-between; padding: 5px 10px; }
             .score-box { font-size: 16px; padding: 5px 10px; min-width: auto; margin-right: 0; }
             .timer-box { font-size: 14px; margin-right: 0; }
-            .plant-info { display: none; } 
+            .plant-info { display: none; }
             .card { width: 50px; height: 60px; margin-right: 5px; }
             .end-btn { width: auto; font-size: 14px; padding: 6px 12px; }
 
-            /* 识字区竖向布局 */
             #quiz-panel {
                 flex-direction: column;
                 align-items: stretch;
-                padding: 10px 10px 100px 10px; /* 顶部padding减小，底部加大 */
+                padding: 10px 10px 100px 10px;
             }
             .quiz-group-left {
                 width: 100%;
@@ -269,24 +280,42 @@
             .quiz-title { font-size: 20px; }
             .quiz-type-label { font-size: 14px; margin: 0; }
             .feedback-area { margin-top: 0; font-size: 14px; }
-            .option-btn-char { height: 60px; font-size: 32px; } 
+            .option-btn-char { height: 60px; font-size: 32px; }
             .option-btn-pinyin { height: 50px; font-size: 24px; }
             .small-speaker { height: 50px; width: 50px; }
+
+            .mode-selection { width: 90%; }
         }
     </style>
 </head>
 <body>
 
     <div id="start-overlay" class="overlay-screen">
-        <h1>识字大战僵尸 (移动修正版)</h1>
+        <h1>识字大战僵尸 (自选版)</h1>
         <p>🧟 抵御僵尸 | 📝 趣味识字</p>
+
+        <div class="mode-selection">
+            <div class="mode-title">请选择挑战题型 (可多选):</div>
+            <div class="mode-options-row">
+                <label class="mode-checkbox-label">
+                    <input type="checkbox" id="mode-listen" checked>
+                    👂 听音辨字
+                </label>
+                <label class="mode-checkbox-label">
+                    <input type="checkbox" id="mode-read" checked>
+                    👁️ 看字选音
+                </label>
+            </div>
+        </div>
+
+        <div id="start-error" class="error-msg">请至少选择一种模式！</div>
         <button class="start-btn" onclick="startGame()">开始游戏</button>
     </div>
 
     <div id="game-over" class="overlay-screen">
         <div class="game-over-title" id="go-title">游戏结束</div>
         <div class="game-stats" id="go-stats">答对: 0</div>
-        
+
         <div class="review-box">
             <div style="color: #aaa; font-size: 14px; margin-bottom: 10px;">错题本</div>
             <div id="go-review-list" style="color: #fff;"></div>
@@ -307,7 +336,7 @@
             <div class="score-box">☀️ <span id="score">0</span></div>
             <div class="timer-box" style="margin-left:10px;">⏱️ <span id="game-time">00:00</span></div>
         </div>
-        
+
         <div style="display:flex; align-items:center;">
             <div class="card" id="card-peashooter" onclick="selectPlant('peashooter', 100)">
                 <img src="peashooter.png" alt="Pea" onerror="this.style.display='none';this.parentNode.innerText='🌱'">
@@ -322,7 +351,7 @@
     <!-- 3. 识字区 -->
     <div id="quiz-panel">
         <div id="wrong-overlay"><div id="wrong-mark">❌</div></div>
-        
+
         <div class="quiz-group-left">
             <div>
                 <div class="quiz-type-label" id="quiz-mode-label">模式加载中...</div>
@@ -344,15 +373,21 @@
     <script>
         // --- 1. 数据配置 ---
         const wordData = [
-            { char: "天", pinyin: "tiān" }, { char: "地", pinyin: "dì" }, { char: "人", pinyin: "rén" },
-            { char: "你", pinyin: "nǐ" }, { char: "我", pinyin: "wǒ" }, { char: "他", pinyin: "tā" },
-            { char: "口", pinyin: "kǒu" }, { char: "耳", pinyin: "ěr" }, { char: "目", pinyin: "mù" },
-            { char: "禾", pinyin: "hé" }, { char: "下", pinyin: "xià" }, { char: "手", pinyin: "shǒu" },
-            { char: "足", pinyin: "zú" }, { char: "站", pinyin: "zhàn" }, { char: "坐", pinyin: "zuò" },
-            { char: "日", pinyin: "rì" }, { char: "月", pinyin: "yuè" }, { char: "水", pinyin: "shuǐ" },
-            { char: "火", pinyin: "huǒ" }, { char: "山", pinyin: "shān" }, { char: "石", pinyin: "shí" },
-            { char: "田", pinyin: "tián" }, { char: "对", pinyin: "duì" }, { char: "云", pinyin: "yún" },
-            { char: "雨", pinyin: "yǔ" }, { char: "风", pinyin: "fēng" }, { char: "花", pinyin: "huā" }
+          {char: '包', pinyin: 'bāo'}, {char: '尺', pinyin: 'chǐ'}, {char: '作', pinyin: 'zuò'},
+{char: '业', pinyin: 'yè'}, {char: '本', pinyin: 'běn'}, {char: '笔', pinyin: 'bǐ'},
+{char: '刀', pinyin: 'dāo'}, {char: '课', pinyin: 'kè'}, {char: '早', pinyin: 'zǎo'},
+{char: '校', pinyin: 'xiào'}, {char: '明', pinyin: 'míng'}, {char: '力', pinyin: 'lì'},
+{char: '尘', pinyin: 'chén'}, {char: '从', pinyin: 'cóng'}, {char: '众', pinyin: 'zhòng'},
+{char: '双', pinyin: 'shuāng'}, {char: '木', pinyin: 'mù'}, {char: '林', pinyin: 'lín'},
+{char: '森', pinyin: 'sēn'}, {char: '条', pinyin: 'tiáo'}, {char: '心', pinyin: 'xīn'},
+{char: '升', pinyin: 'shēng'}, {char: '国', pinyin: 'guó'}, {char: '旗', pinyin: 'qí'},
+{char: '中', pinyin: 'zhōng'}, {char: '红', pinyin: 'hóng'}, {char: '歌', pinyin: 'gē'},
+{char: '起', pinyin: 'qǐ'}, {char: '么', pinyin: 'me'}, {char: '美', pinyin: 'měi'},
+{char: '丽', pinyin: 'lì'}, {char: '立', pinyin: 'lì'}, {char: '午', pinyin: 'wǔ'},
+{char: '夜', pinyin: 'yè'}, {char: '昨', pinyin: 'zuó'}, {char: '今', pinyin: 'jīn'},
+{char: '年', pinyin: 'nián'}, {char: '影', pinyin: 'yǐng'}, {char: '前', pinyin: 'qián'},
+{char: '后', pinyin: 'hòu'}, {char: '黑', pinyin: 'hēi'}, {char: '狗', pinyin: 'gǒu'},
+{char: '左', pinyin: 'zuǒ'}, {char: '右', pinyin: 'yòu'}, {char: '它', pinyin: 'tā'}
         ];
 
         const ZOMBIE_TYPES = {
@@ -364,7 +399,7 @@
         const state = {
             score: 0,
             selectedPlant: null,
-            gridSize: 100, 
+            gridSize: 100,
             rows: 5,
             cols: 9,
             plants: [],
@@ -377,7 +412,8 @@
             waveLevel: 0,
             correctCount: 0,
             wrongAnswers: [],
-            gameScale: 1
+            gameScale: 1,
+            activeModes: ['LISTEN', 'READ'] // 默认全选
         };
 
         const elScore = document.getElementById('score');
@@ -401,44 +437,47 @@
         const elGoStats = document.getElementById('go-stats');
         const elGoReviewList = document.getElementById('go-review-list');
 
-        // --- 核心：屏幕适配逻辑 (修复版) ---
+        // --- 核心：屏幕适配逻辑 ---
         function resizeGameWindow() {
             const screenWidth = window.innerWidth;
             const logicalWidth = 900;
             const logicalHeight = 500;
-            
-            // 计算缩放比例，如果屏幕小于900，则按比例缩小；否则比例为1
             let scale = screenWidth < logicalWidth ? (screenWidth / logicalWidth) : 1;
-            
-            // 更新状态
             state.gameScale = scale;
-            
-            // 应用缩放
-            // 关键：transform-origin 已经在 CSS 中固定为 top center
             elLawn.style.transform = `scale(${scale})`;
-            
-            // 调整容器高度，防止下方留白
             elGameWrapper.style.height = (logicalHeight * scale) + 'px';
         }
-        
-        // 绑定多个事件以确保在手机上一定会触发
+
         window.addEventListener('resize', resizeGameWindow);
         window.addEventListener('load', resizeGameWindow);
         document.addEventListener('DOMContentLoaded', resizeGameWindow);
-        
-        // 立即执行一次
         resizeGameWindow();
 
 
         // --- 2. 游戏流程 ---
         function startGame() {
+            // 获取用户选择的模式
+            const useListen = document.getElementById('mode-listen').checked;
+            const useRead = document.getElementById('mode-read').checked;
+            const errorMsg = document.getElementById('start-error');
+
+            if (!useListen && !useRead) {
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // 更新状态
+            state.activeModes = [];
+            if (useListen) state.activeModes.push('LISTEN');
+            if (useRead) state.activeModes.push('READ');
+
+            errorMsg.style.display = 'none';
             document.getElementById('start-overlay').style.display = 'none';
+
             state.isGameStarted = true;
             state.startTime = Date.now();
-            
-            // 再次强制计算一次布局，防止初始加载时宽度计算错误
             resizeGameWindow();
-            
+
             initQuiz();
             updateUI();
             requestAnimationFrame(gameLoop);
@@ -447,7 +486,7 @@
         function handleGameOver(reason) {
             if (state.isGameOver) return;
             state.isGameOver = true;
-            elGameOverPanel.style.display = 'flex'; 
+            elGameOverPanel.style.display = 'flex';
 
             let speakStr = "";
             if (reason === 'zombie') {
@@ -499,11 +538,14 @@
         function generateQuestion() {
             if (state.isGameOver) return;
             isProcessing = false;
-            const mode = Math.random() > 0.5 ? 'LISTEN' : 'READ';
-            
+
+            // 随机从用户选定的模式中取一个
+            const modeIndex = Math.floor(Math.random() * state.activeModes.length);
+            const mode = state.activeModes[modeIndex];
+
             const targetIndex = Math.floor(Math.random() * wordData.length);
             const target = wordData[targetIndex];
-            
+
             let distractors = [];
             while(distractors.length < 3) {
                 let r = Math.floor(Math.random() * wordData.length);
@@ -515,14 +557,14 @@
             currentQuestion = { mode: mode, target: target, options: options };
 
             renderQuiz();
-            
+
             if (mode === 'LISTEN') setTimeout(speakQuestion, 300);
         }
 
         function speakText(text) {
             synth.cancel();
             const utterThis = new SpeechSynthesisUtterance(text);
-            utterThis.lang = 'zh-CN'; 
+            utterThis.lang = 'zh-CN';
             utterThis.rate = 0.8;
             synth.speak(utterThis);
         }
@@ -560,8 +602,8 @@
                 elQuizLabel.innerText = "模式：👁️ 看字选音";
                 elQuizTitle.innerText = "这个字的拼音是？";
                 elMainDisplay.innerText = q.target.char;
-                elMainSpeaker.style.visibility = 'hidden'; 
-                
+                elMainSpeaker.style.visibility = 'hidden';
+
                 const grid = document.createElement('div');
                 grid.className = 'pinyin-grid';
                 q.options.forEach(opt => {
@@ -590,7 +632,7 @@
                 elFeedback.innerText = "✅ 答对了！";
                 elFeedback.className = "feedback-area correct";
                 addScore(30);
-                state.correctCount++; 
+                state.correctCount++;
                 isProcessing = true;
                 setTimeout(generateQuestion, 800);
             } else {
@@ -610,7 +652,7 @@
         // --- 4. 经济与操作 ---
         function addScore(n) {
             state.score += n;
-            if (state.score < 0) state.score = 0; 
+            if (state.score < 0) state.score = 0;
             updateUI();
         }
         function updateUI() {
@@ -629,26 +671,23 @@
             }
         }
 
-        // 点击逻辑：支持缩放计算
+        // 点击逻辑
         elLawn.addEventListener('click', (e) => {
             if (!state.selectedPlant || state.isGameOver) return;
-            
+
             const rect = elLawn.getBoundingClientRect();
-            
-            // 1. 计算相对于缩放后草地的坐标
             const clickX = e.clientX - rect.left;
             const clickY = e.clientY - rect.top;
 
-            // 2. 映射回 900x500 的逻辑坐标
+            // 映射回逻辑坐标
             const logicalX = (clickX / rect.width) * 900;
             const logicalY = (clickY / rect.height) * 500;
 
             const col = Math.floor(logicalX / state.gridSize);
             const row = Math.floor(logicalY / state.gridSize);
 
-            // 边界检查
             if (col < 0 || col >= state.cols || row < 0 || row >= state.rows) return;
-            
+
             const exists = state.plants.find(p => p.row === row && p.col === col);
             if (exists) return;
 
@@ -673,11 +712,11 @@
             el.className = 'entity plant';
             const hpObj = createHPBar('hp-green');
             el.appendChild(hpObj.bg);
-            
+
             const img = document.createElement('img');
             img.src = 'peashooter.png';
             img.onerror = () => { img.style.display='none'; el.innerText = '🌱'; }
-            
+
             el.appendChild(img);
             el.style.left = (col * state.gridSize + 10) + 'px';
             el.style.top = (row * state.gridSize + 10) + 'px';
@@ -707,18 +746,18 @@
             el.className = 'entity zombie';
             const hpObj = createHPBar('hp-red');
             el.appendChild(hpObj.bg);
-            
+
             if (typeConfig.accessory) {
                 const acc = document.createElement('div');
                 acc.className = 'zombie-accessory';
                 acc.innerText = typeConfig.accessory;
                 el.appendChild(acc);
             }
-            
+
             const img = document.createElement('img');
             img.src = 'zombie.png';
             img.onerror = () => { img.style.display='none'; const s = document.createElement('span'); s.innerText='🧟'; el.appendChild(s); }
-            
+
             el.appendChild(img);
 
             let posX = state.cols * state.gridSize;
@@ -752,8 +791,8 @@
             // Wave Logic
             const minVal = elapsed / 60000;
             let currentWave = 0;
-            if (minVal >= 4) currentWave = 2; 
-            else if (minVal >= 2) currentWave = 1; 
+            if (minVal >= 4) currentWave = 2;
+            else if (minVal >= 2) currentWave = 1;
 
             if (currentWave > state.waveLevel) {
                 state.waveLevel = currentWave;
