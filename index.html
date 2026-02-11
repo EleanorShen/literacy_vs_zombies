@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>识字大战僵尸 - 完美修复版</title>
+    <title>识字大战僵尸 - 完美适配版</title>
     <style>
         :root {
             --lawn-green: #2ecc71;
@@ -19,58 +19,59 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            /* 适配移动端高度 */
             height: 100vh;
-            height: 100dvh;
-            background: #333; /* 网页背景深色，衬托草地 */
+            height: 100dvh; /* 适配手机动态地址栏高度 */
+            background: #222;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- 1. 上方：游戏区 (草坪) --- */
+        /* --- 1. 上方：游戏区 --- */
         #game-wrapper {
             width: 100%;
-            /* 移除之前的黑色背景和复杂定位，恢复简洁容器 */
-            position: relative;
-            overflow: hidden;
+            /* 关键：使用 flex 居中，溢出隐藏 */
             display: flex;
-            justify-content: center; /* 电脑端居中 */
-            flex-shrink: 0;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: hidden;
+            background: #333;
+            position: relative;
+            flex-shrink: 0; /* 禁止被挤压 */
             z-index: 10;
-            background: #222;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
 
         #lawn {
-            width: 900px;
-            height: 500px;
+            width: 900px;  /* 锁定逻辑宽度 */
+            height: 500px; /* 锁定逻辑高度 */
+            flex-shrink: 0;
             position: relative;
-            /* 恢复经典的草地背景逻辑 */
-            background-image:
+            /* 经典草地样式 */
+            background-image: 
                 linear-gradient(var(--lawn-dark) 2px, transparent 2px),
                 linear-gradient(90deg, var(--lawn-dark) 2px, transparent 2px);
             background-size: 100px 100px;
             background-color: var(--lawn-green);
             cursor: crosshair;
-            transform-origin: top center; /* 默认中心缩放 */
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            
+            /* 核心修复：永远从顶部中心开始缩放 */
+            transform-origin: top center; 
         }
 
-        /* 实体样式保持不变 */
+        /* 实体样式 */
         .entity {
             position: absolute; width: 80px; height: 80px; display: flex;
             align-items: center; justify-content: center; z-index: 2; pointer-events: none;
             flex-direction: column; justify-content: flex-end; padding-bottom: 5px;
         }
         .entity img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.4)); }
-        .plant { z-index: 3; }
-        .zombie { z-index: 4; transition: left 0.1s linear; }
-
-        .zombie-accessory {
+        
+        .zombie-accessory { 
             position: absolute; top: -15px; left: 20px;
-            font-size: 40px; z-index: 5;
+            font-size: 40px; z-index: 5; 
             filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.5));
         }
-
+        
         .hp-bar-bg { position: absolute; top: -10px; width: 60px; height: 6px; background: #555; border-radius: 3px; overflow: hidden; z-index: 10;}
         .hp-bar-fill { height: 100%; width: 100%; transition: width 0.2s; }
         .hp-red { background: #e74c3c; }
@@ -87,34 +88,29 @@
             text-shadow: 3px 3px 0 #000, -1px -1px 0 #000;
             z-index: 50; display: none; pointer-events: none; white-space: nowrap;
             background: rgba(0,0,0,0.6); padding: 20px 40px; border-radius: 10px; border: 4px solid #fff;
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        @keyframes popIn { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
 
         /* --- 2. 中间：道具栏 --- */
         #top-bar {
             background: var(--ui-bg);
             display: flex;
             align-items: center;
-            padding: 8px 20px; /*稍微减小padding防止太高*/
-            color: white;
-            /* 解决遮挡Bug：减少阴影扩散范围，确保不遮挡下方 */
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
-            z-index: 20;
             justify-content: center;
-            flex-wrap: wrap;
+            padding: 8px 20px;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 20;
+            flex-wrap: wrap; 
             gap: 15px;
             border-bottom: 4px solid #5d4037;
-            border-top: 2px solid #a1887f; /* 增加顶部边框区分游戏区 */
-            flex-shrink: 0; /* 防止被压缩 */
+            border-top: 2px solid #a1887f;
+            flex-shrink: 0;
         }
 
         .score-box {
             background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 5px;
-            font-size: 18px; border: 2px solid #ffd700;
-            display: flex; align-items: center; gap: 5px;
+            font-size: 18px; border: 2px solid #ffd700; display: flex; align-items: center; gap: 5px;
         }
-
         .timer-box { font-size: 16px; color: #ddd; display: flex; align-items: center; gap: 5px; }
 
         .card {
@@ -139,21 +135,27 @@
 
         /* --- 3. 下方：识字挑战区 --- */
         #quiz-panel {
-            flex: 1;
+            flex: 1; 
             background: var(--quiz-bg);
             display: flex;
             flex-direction: row;
             align-items: center;
             justify-content: center;
-            padding: 10px 20px;
-            padding-bottom: 80px;
+            /* 修复遮挡：增加顶部 Padding */
+            padding: 20px 20px 80px 20px; 
             box-sizing: border-box;
             gap: 20px;
             position: relative;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            /* 解决遮挡Bug：确保识字区内容有独立层级 */
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; 
             z-index: 5;
+        }
+
+        /* 顶部内阴影，增加层次感，防止文字看起来被切掉 */
+        #quiz-panel::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 10px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), transparent);
+            pointer-events: none;
         }
 
         .quiz-group-left { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; width: 180px; }
@@ -165,7 +167,7 @@
         .feedback-area { font-size: 18px; font-weight: bold; margin-top: 5px; height: 25px; }
         .correct { color: green; }
 
-        .main-display {
+        .main-display { 
             font-size: 60px; color: #d35400; font-weight: bold;
             background: #fff; padding: 5px 20px; border-radius: 15px;
             box-shadow: 0 4px 0 #ddd; min-width: 100px; text-align: center;
@@ -195,14 +197,12 @@
             background: #9b59b6; color: white; border: none; height: 55px; font-size: 24px;
             border-radius: 10px; cursor: pointer; box-shadow: 0 4px 0 #8e44ad; font-weight: bold;
         }
-        .option-btn-pinyin:active { transform: translateY(4px); box-shadow: none; }
-
+        
         .small-speaker {
             width: 50px; height: 55px; background: #f1c40f; border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; font-size: 24px; border-bottom: 4px solid #d35400; color: #333;
         }
-        .small-speaker:active { transform: translateY(4px); border-bottom: none; }
 
         #wrong-overlay {
             position: absolute; top:0; left:0; right:0; bottom:0;
@@ -217,12 +217,12 @@
         .overlay-screen {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.95); display: flex; justify-content: center;
-            align-items: center; flex-direction: column;
-            z-index: 9999;
+            align-items: center; flex-direction: column; 
+            z-index: 9999; 
             color: white; padding: 20px; text-align: center;
         }
         #game-over { display: none; }
-
+        
         .game-over-title { font-size: 40px; margin-bottom: 20px; font-weight: bold; color: #e74c3c; }
         .game-stats { font-size: 20px; margin-bottom: 20px; color: #f1c40f; }
         .review-box {
@@ -230,44 +230,32 @@
             border-radius: 10px; padding: 15px; margin-bottom: 20px;
             max-height: 25vh; overflow-y: auto; text-align: center;
         }
-        .review-title { color: #aaa; font-size: 14px; margin-bottom: 10px; border-bottom: 1px solid #555; padding-bottom: 5px; }
-        .review-item {
-            display: inline-block; background: #eee; color: #333;
+        .review-item { 
+            display: inline-block; background: #eee; color: #333; 
             padding: 5px 12px; margin: 5px; border-radius: 15px; font-size: 18px;
             font-family: "KaiTi", "楷体", serif;
         }
         .start-btn {
-            font-size: 24px; padding: 15px 40px;
+            font-size: 24px; padding: 15px 40px; 
             cursor: pointer; background: #fff; border: none; border-radius: 50px;
             font-weight: bold; color: #333; transition: transform 0.2s; margin-top: 20px;
         }
         .start-btn:hover { transform: scale(1.05); }
 
-        /* --- 📱 移动端适配 --- */
+        /* --- 📱 移动端适配 CSS --- */
         @media (max-width: 900px) {
-            #game-wrapper {
-                justify-content: flex-start; /* 手机端靠左，配合缩放填满 */
-            }
-            #lawn {
-                transform-origin: top left; /* 手机端从左上角缩放 */
-            }
-
-            #top-bar {
-                justify-content: space-between;
-                padding: 5px 10px;
-                /* 修复遮挡：确保移动端道具栏高度合理 */
-            }
+            #top-bar { justify-content: space-between; padding: 5px 10px; }
             .score-box { font-size: 16px; padding: 5px 10px; min-width: auto; margin-right: 0; }
             .timer-box { font-size: 14px; margin-right: 0; }
-            .plant-info { display: none; }
+            .plant-info { display: none; } 
             .card { width: 50px; height: 60px; margin-right: 5px; }
-            .end-btn { width: auto; font-size: 14px; padding: 6px 12px; margin-top: 0; flex-shrink: 0;}
+            .end-btn { width: auto; font-size: 14px; padding: 6px 12px; }
 
+            /* 识字区竖向布局 */
             #quiz-panel {
                 flex-direction: column;
                 align-items: stretch;
-                padding: 10px;
-                padding-bottom: 100px;
+                padding: 10px 10px 100px 10px; /* 顶部padding减小，底部加大 */
             }
             .quiz-group-left {
                 width: 100%;
@@ -276,19 +264,12 @@
                 align-items: center;
                 margin-bottom: 10px;
             }
-            .quiz-group-center {
-                width: 100%;
-                justify-content: center;
-                margin-bottom: 10px;
-            }
-            .quiz-group-right {
-                width: 100%;
-                max-width: none;
-            }
+            .quiz-group-center { width: 100%; justify-content: center; margin-bottom: 10px; }
+            .quiz-group-right { width: 100%; max-width: none; }
             .quiz-title { font-size: 20px; }
             .quiz-type-label { font-size: 14px; margin: 0; }
             .feedback-area { margin-top: 0; font-size: 14px; }
-            .option-btn-char { height: 60px; font-size: 32px; }
+            .option-btn-char { height: 60px; font-size: 32px; } 
             .option-btn-pinyin { height: 50px; font-size: 24px; }
             .small-speaker { height: 50px; width: 50px; }
         }
@@ -297,7 +278,7 @@
 <body>
 
     <div id="start-overlay" class="overlay-screen">
-        <h1>识字大战僵尸 (复习版)</h1>
+        <h1>识字大战僵尸 (移动修正版)</h1>
         <p>🧟 抵御僵尸 | 📝 趣味识字</p>
         <button class="start-btn" onclick="startGame()">开始游戏</button>
     </div>
@@ -305,9 +286,9 @@
     <div id="game-over" class="overlay-screen">
         <div class="game-over-title" id="go-title">游戏结束</div>
         <div class="game-stats" id="go-stats">答对: 0</div>
-
+        
         <div class="review-box">
-            <div class="review-title">错题本 (本次做错的字)</div>
+            <div style="color: #aaa; font-size: 14px; margin-bottom: 10px;">错题本</div>
             <div id="go-review-list" style="color: #fff;"></div>
         </div>
 
@@ -326,7 +307,7 @@
             <div class="score-box">☀️ <span id="score">0</span></div>
             <div class="timer-box" style="margin-left:10px;">⏱️ <span id="game-time">00:00</span></div>
         </div>
-
+        
         <div style="display:flex; align-items:center;">
             <div class="card" id="card-peashooter" onclick="selectPlant('peashooter', 100)">
                 <img src="peashooter.png" alt="Pea" onerror="this.style.display='none';this.parentNode.innerText='🌱'">
@@ -341,7 +322,7 @@
     <!-- 3. 识字区 -->
     <div id="quiz-panel">
         <div id="wrong-overlay"><div id="wrong-mark">❌</div></div>
-
+        
         <div class="quiz-group-left">
             <div>
                 <div class="quiz-type-label" id="quiz-mode-label">模式加载中...</div>
@@ -363,51 +344,15 @@
     <script>
         // --- 1. 数据配置 ---
         const wordData = [
-          {char: '天', pinyin: 'tiān'}, {char: '地', pinyin: 'dì'}, {char: '人', pinyin: 'rén'},
-          {char: '你', pinyin: 'nǐ'}, {char: '我', pinyin: 'wǒ'}, {char: '他', pinyin: 'tā'},
-          {char: '也', pinyin: 'yě'}, {char: '口', pinyin: 'kǒu'}, {char: '耳', pinyin: 'ěr'},
-          {char: '目', pinyin: 'mù'}, {char: '禾', pinyin: 'hé'}, {char: '下', pinyin: 'xià'},
-          {char: '手', pinyin: 'shǒu'}, {char: '足', pinyin: 'zú'}, {char: '站', pinyin: 'zhàn'},
-          {char: '坐', pinyin: 'zuò'}, {char: '日', pinyin: 'rì'}, {char: '月', pinyin: 'yuè'},
-          {char: '水', pinyin: 'shuǐ'}, {char: '火', pinyin: 'huǒ'}, {char: '山', pinyin: 'shān'},
-          {char: '石', pinyin: 'shí'}, {char: '田', pinyin: 'tián'}, {char: '对', pinyin: 'duì'},
-          {char: '云', pinyin: 'yún'}, {char: '雨', pinyin: 'yǔ'}, {char: '风', pinyin: 'fēng'},
-          {char: '花', pinyin: 'huā'}, {char: '鸟', pinyin: 'niǎo'}, {char: '虫', pinyin: 'chóng'},
-          {char: '爸', pinyin: 'bà'}, {char: '妈', pinyin: 'mā'}, {char: '棋', pinyin: 'qí'},
-          {char: '鸡', pinyin: 'jī'}, {char: '马', pinyin: 'mǎ'}, {char: '土', pinyin: 'tǔ'},
-          {char: '不', pinyin: 'bù'}, {char: '字', pinyin: 'zì'}, {char: '词', pinyin: 'cí'},
-          {char: '语', pinyin: 'yǔ'}, {char: '句', pinyin: 'jù'}, {char: '画', pinyin: 'huà'},
-          {char: '打', pinyin: 'dǎ'}, {char: '桌', pinyin: 'zhuō'}, {char: '纸', pinyin: 'zhǐ'},
-          {char: '文', pinyin: 'wén'}, {char: '数', pinyin: 'shù'}, {char: '学', pinyin: 'xué'},
-          {char: '音', pinyin: 'yīn'}, {char: '乐', pinyin: 'lè'}, {char: '妹', pinyin: 'mèi'},
-          {char: '奶', pinyin: 'nǎi'}, {char: '白', pinyin: 'bái'}, {char: '皮', pinyin: 'pí'},
-          {char: '草', pinyin: 'cǎo'}, {char: '家', pinyin: 'jiā'}, {char: '是', pinyin: 'shì'},
-          {char: '小', pinyin: 'xiǎo'}, {char: '桥', pinyin: 'qiáo'}, {char: '台', pinyin: 'tái'},
-          {char: '车', pinyin: 'chē'}, {char: '羊', pinyin: 'yáng'}, {char: '走', pinyin: 'zǒu'},
-          {char: '雪', pinyin: 'xuě'}, {char: '儿', pinyin: 'ér'}, {char: '秋', pinyin: 'qiū'},
-          {char: '气', pinyin: 'qì'}, {char: '了', pinyin: 'le'}, {char: '树', pinyin: 'shù'},
-          {char: '叶', pinyin: 'yè'}, {char: '片', pinyin: 'piàn'}, {char: '大', pinyin: 'dà'},
-          {char: '飞', pinyin: 'fēi'}, {char: '会', pinyin: 'huì'}, {char: '个', pinyin: 'gè'},
-          {char: '的', pinyin: 'de'}, {char: '船', pinyin: 'chuán'}, {char: '两', pinyin: 'liǎng'},
-          {char: '头', pinyin: 'tóu'}, {char: '在', pinyin: 'zài'}, {char: '里', pinyin: 'lǐ'},
-          {char: '看', pinyin: 'kàn'}, {char: '见', pinyin: 'jiàn'}, {char: '闪', pinyin: 'shǎn'},
-          {char: '星', pinyin: 'xīng'}, {char: '江', pinyin: 'jiāng'}, {char: '南', pinyin: 'nán'},
-          {char: '可', pinyin: 'kě'}, {char: '采', pinyin: 'cǎi'}, {char: '莲', pinyin: 'lián'},
-          {char: '鱼', pinyin: 'yú'}, {char: '东', pinyin: 'dōng'}, {char: '西', pinyin: 'xī'},
-          {char: '北', pinyin: 'běi'}, {char: '尖', pinyin: 'jiān'}, {char: '说', pinyin: 'shuō'},
-          {char: '春', pinyin: 'chūn'}, {char: '青', pinyin: 'qīng'}, {char: '蛙', pinyin: 'wā'},
-          {char: '夏', pinyin: 'xià'}, {char: '弯', pinyin: 'wān'}, {char: '就', pinyin: 'jiù'},
-          {char: '冬', pinyin: 'dōng'}, {char: '男', pinyin: 'nán'}, {char: '女', pinyin: 'nǚ'},
-          {char: '开', pinyin: 'kāi'}, {char: '关', pinyin: 'guān'}, {char: '正', pinyin: 'zhèng'},
-          {char: '反', pinyin: 'fǎn'}, {char: '远', pinyin: 'yuǎn'}, {char: '有', pinyin: 'yǒu'},
-          {char: '色', pinyin: 'sè'}, {char: '近', pinyin: 'jìn'}, {char: '听', pinyin: 'tīng'},
-          {char: '无', pinyin: 'wú'}, {char: '声', pinyin: 'shēng'}, {char: '去', pinyin: 'qù'},
-          {char: '还', pinyin: 'hái'}, {char: '来', pinyin: 'lái'}, {char: '多', pinyin: 'duō'},
-          {char: '少', pinyin: 'shǎo'}, {char: '黄', pinyin: 'huáng'}, {char: '牛', pinyin: 'niú'},
-          {char: '只', pinyin: 'zhī'}, {char: '猫', pinyin: 'māo'}, {char: '边', pinyin: 'biān'},
-          {char: '鸭', pinyin: 'yā'}, {char: '果', pinyin: 'guǒ'}, {char: '苹', pinyin: 'píng'},
-          {char: '杏', pinyin: 'xìng'},
-          {char: '桃', pinyin: 'táo'}, {char: '书', pinyin: 'shū'}
+            { char: "天", pinyin: "tiān" }, { char: "地", pinyin: "dì" }, { char: "人", pinyin: "rén" },
+            { char: "你", pinyin: "nǐ" }, { char: "我", pinyin: "wǒ" }, { char: "他", pinyin: "tā" },
+            { char: "口", pinyin: "kǒu" }, { char: "耳", pinyin: "ěr" }, { char: "目", pinyin: "mù" },
+            { char: "禾", pinyin: "hé" }, { char: "下", pinyin: "xià" }, { char: "手", pinyin: "shǒu" },
+            { char: "足", pinyin: "zú" }, { char: "站", pinyin: "zhàn" }, { char: "坐", pinyin: "zuò" },
+            { char: "日", pinyin: "rì" }, { char: "月", pinyin: "yuè" }, { char: "水", pinyin: "shuǐ" },
+            { char: "火", pinyin: "huǒ" }, { char: "山", pinyin: "shān" }, { char: "石", pinyin: "shí" },
+            { char: "田", pinyin: "tián" }, { char: "对", pinyin: "duì" }, { char: "云", pinyin: "yún" },
+            { char: "雨", pinyin: "yǔ" }, { char: "风", pinyin: "fēng" }, { char: "花", pinyin: "huā" }
         ];
 
         const ZOMBIE_TYPES = {
@@ -419,7 +364,7 @@
         const state = {
             score: 0,
             selectedPlant: null,
-            gridSize: 100, // 逻辑网格
+            gridSize: 100, 
             rows: 5,
             cols: 9,
             plants: [],
@@ -451,8 +396,6 @@
         const elOptionsContainer = document.getElementById('options-container');
         const elFeedback = document.getElementById('feedback');
         const elWrongOverlay = document.getElementById('wrong-overlay');
-
-        // 游戏结束DOM
         const elGameOverPanel = document.getElementById('game-over');
         const elGoTitle = document.getElementById('go-title');
         const elGoStats = document.getElementById('go-stats');
@@ -463,24 +406,27 @@
             const screenWidth = window.innerWidth;
             const logicalWidth = 900;
             const logicalHeight = 500;
-
-            if (screenWidth < logicalWidth) {
-                // 手机端：缩放并从左上角对齐
-                state.gameScale = screenWidth / logicalWidth;
-                elLawn.style.transform = `scale(${state.gameScale})`;
-                elLawn.style.transformOrigin = 'top left';
-                // 容器高度随缩放调整，避免下方留白
-                elGameWrapper.style.height = (logicalHeight * state.gameScale) + 'px';
-            } else {
-                // 电脑端：不缩放，居中显示
-                state.gameScale = 1;
-                elLawn.style.transform = 'scale(1)';
-                elLawn.style.transformOrigin = 'top center';
-                elGameWrapper.style.height = '500px';
-            }
+            
+            // 计算缩放比例，如果屏幕小于900，则按比例缩小；否则比例为1
+            let scale = screenWidth < logicalWidth ? (screenWidth / logicalWidth) : 1;
+            
+            // 更新状态
+            state.gameScale = scale;
+            
+            // 应用缩放
+            // 关键：transform-origin 已经在 CSS 中固定为 top center
+            elLawn.style.transform = `scale(${scale})`;
+            
+            // 调整容器高度，防止下方留白
+            elGameWrapper.style.height = (logicalHeight * scale) + 'px';
         }
-
+        
+        // 绑定多个事件以确保在手机上一定会触发
         window.addEventListener('resize', resizeGameWindow);
+        window.addEventListener('load', resizeGameWindow);
+        document.addEventListener('DOMContentLoaded', resizeGameWindow);
+        
+        // 立即执行一次
         resizeGameWindow();
 
 
@@ -489,7 +435,10 @@
             document.getElementById('start-overlay').style.display = 'none';
             state.isGameStarted = true;
             state.startTime = Date.now();
+            
+            // 再次强制计算一次布局，防止初始加载时宽度计算错误
             resizeGameWindow();
+            
             initQuiz();
             updateUI();
             requestAnimationFrame(gameLoop);
@@ -498,7 +447,7 @@
         function handleGameOver(reason) {
             if (state.isGameOver) return;
             state.isGameOver = true;
-            elGameOverPanel.style.display = 'flex';
+            elGameOverPanel.style.display = 'flex'; 
 
             let speakStr = "";
             if (reason === 'zombie') {
@@ -551,10 +500,10 @@
             if (state.isGameOver) return;
             isProcessing = false;
             const mode = Math.random() > 0.5 ? 'LISTEN' : 'READ';
-
+            
             const targetIndex = Math.floor(Math.random() * wordData.length);
             const target = wordData[targetIndex];
-
+            
             let distractors = [];
             while(distractors.length < 3) {
                 let r = Math.floor(Math.random() * wordData.length);
@@ -566,14 +515,14 @@
             currentQuestion = { mode: mode, target: target, options: options };
 
             renderQuiz();
-
+            
             if (mode === 'LISTEN') setTimeout(speakQuestion, 300);
         }
 
         function speakText(text) {
             synth.cancel();
             const utterThis = new SpeechSynthesisUtterance(text);
-            utterThis.lang = 'zh-CN';
+            utterThis.lang = 'zh-CN'; 
             utterThis.rate = 0.8;
             synth.speak(utterThis);
         }
@@ -611,8 +560,8 @@
                 elQuizLabel.innerText = "模式：👁️ 看字选音";
                 elQuizTitle.innerText = "这个字的拼音是？";
                 elMainDisplay.innerText = q.target.char;
-                elMainSpeaker.style.visibility = 'hidden';
-
+                elMainSpeaker.style.visibility = 'hidden'; 
+                
                 const grid = document.createElement('div');
                 grid.className = 'pinyin-grid';
                 q.options.forEach(opt => {
@@ -641,7 +590,7 @@
                 elFeedback.innerText = "✅ 答对了！";
                 elFeedback.className = "feedback-area correct";
                 addScore(30);
-                state.correctCount++;
+                state.correctCount++; 
                 isProcessing = true;
                 setTimeout(generateQuestion, 800);
             } else {
@@ -661,7 +610,7 @@
         // --- 4. 经济与操作 ---
         function addScore(n) {
             state.score += n;
-            if (state.score < 0) state.score = 0;
+            if (state.score < 0) state.score = 0; 
             updateUI();
         }
         function updateUI() {
@@ -683,9 +632,9 @@
         // 点击逻辑：支持缩放计算
         elLawn.addEventListener('click', (e) => {
             if (!state.selectedPlant || state.isGameOver) return;
-
+            
             const rect = elLawn.getBoundingClientRect();
-
+            
             // 1. 计算相对于缩放后草地的坐标
             const clickX = e.clientX - rect.left;
             const clickY = e.clientY - rect.top;
@@ -699,7 +648,7 @@
 
             // 边界检查
             if (col < 0 || col >= state.cols || row < 0 || row >= state.rows) return;
-
+            
             const exists = state.plants.find(p => p.row === row && p.col === col);
             if (exists) return;
 
@@ -724,11 +673,11 @@
             el.className = 'entity plant';
             const hpObj = createHPBar('hp-green');
             el.appendChild(hpObj.bg);
-
+            
             const img = document.createElement('img');
             img.src = 'peashooter.png';
             img.onerror = () => { img.style.display='none'; el.innerText = '🌱'; }
-
+            
             el.appendChild(img);
             el.style.left = (col * state.gridSize + 10) + 'px';
             el.style.top = (row * state.gridSize + 10) + 'px';
@@ -758,18 +707,18 @@
             el.className = 'entity zombie';
             const hpObj = createHPBar('hp-red');
             el.appendChild(hpObj.bg);
-
+            
             if (typeConfig.accessory) {
                 const acc = document.createElement('div');
                 acc.className = 'zombie-accessory';
                 acc.innerText = typeConfig.accessory;
                 el.appendChild(acc);
             }
-
+            
             const img = document.createElement('img');
             img.src = 'zombie.png';
             img.onerror = () => { img.style.display='none'; const s = document.createElement('span'); s.innerText='🧟'; el.appendChild(s); }
-
+            
             el.appendChild(img);
 
             let posX = state.cols * state.gridSize;
@@ -803,8 +752,8 @@
             // Wave Logic
             const minVal = elapsed / 60000;
             let currentWave = 0;
-            if (minVal >= 4) currentWave = 2;
-            else if (minVal >= 2) currentWave = 1;
+            if (minVal >= 4) currentWave = 2; 
+            else if (minVal >= 2) currentWave = 1; 
 
             if (currentWave > state.waveLevel) {
                 state.waveLevel = currentWave;
