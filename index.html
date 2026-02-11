@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>识字大战僵尸 - 智能复习版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>识字大战僵尸 - 移动适配版</title>
     <style>
         :root {
             --lawn-green: #2ecc71;
@@ -21,74 +22,34 @@
             height: 100vh;
             background: #222;
             user-select: none;
+            -webkit-tap-highlight-color: transparent; /* 移除手机点击高亮 */
         }
 
-        /* --- 1. 顶部：道具栏 --- */
-        #top-bar {
-            height: 80px;
-            background: var(--ui-bg);
-            display: flex;
-            align-items: center;
-            padding: 0 40px;
-            color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            z-index: 20;
-            flex-shrink: 0;
-            justify-content: center;
-            position: relative;
-        }
-
-        .score-box {
-            background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 5px;
-            font-size: 24px; margin-right: 40px; border: 2px solid #ffd700; min-width: 140px;
-            display: flex; align-items: center; gap: 10px;
-        }
-
-        .timer-box { font-size: 20px; margin-right: 40px; color: #ddd; display: flex; align-items: center; gap: 10px; }
-
-        .card {
-            width: 70px; height: 80px; background: #eee; border-radius: 5px; margin-right: 15px;
-            cursor: pointer; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; position: relative; border: 2px solid #444;
-            transition: transform 0.1s; overflow: hidden;
-        }
-        .card.selected { border-color: yellow; box-shadow: 0 0 15px yellow; transform: scale(1.1); }
-        .card.disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
-        .card-cost { position: absolute; bottom: 2px; right: 2px; font-size: 14px; color: black; font-weight: bold; z-index: 2; text-shadow: 1px 1px 0 #fff;}
-        .card img { width: 50px; height: 50px; object-fit: contain; }
-
-        /* 结束游戏按钮 */
-        .end-btn {
-            position: absolute; right: 20px;
-            background: #c0392b; color: white; border: 2px solid #e74c3c;
-            padding: 10px 20px; font-size: 18px; font-weight: bold; border-radius: 8px;
-            cursor: pointer; box-shadow: 0 4px 0 #922b21;
-        }
-        .end-btn:active { transform: translateY(4px); box-shadow: none; }
-
-        /* --- 2. 中间：游戏区 (草坪) --- */
+        /* --- 1. 上方：游戏区 (草坪) --- */
         #game-wrapper {
-            flex: 0 0 500px;
             width: 100%;
             background: #333;
+            position: relative;
+            overflow: hidden;
             display: flex;
             justify-content: center;
-            position: relative;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            align-items: flex-start; /* 顶部对齐 */
+            flex-shrink: 0; /* 防止被压缩 */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            z-index: 10;
         }
 
         #lawn {
             width: 900px;
             height: 500px;
             position: relative;
-            overflow: hidden;
             background-image:
                 linear-gradient(var(--lawn-dark) 2px, transparent 2px),
                 linear-gradient(90deg, var(--lawn-dark) 2px, transparent 2px);
             background-size: 100px 100px;
             background-color: var(--lawn-green);
             cursor: crosshair;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            transform-origin: top center; /* 缩放基准点 */
         }
 
         /* 实体通用 */
@@ -127,68 +88,110 @@
         }
         @keyframes popIn { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
 
-        /* --- 3. 底部：识字挑战区 --- */
+        /* --- 2. 中间：道具栏 --- */
+        #top-bar {
+            background: var(--ui-bg);
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            z-index: 20;
+            justify-content: center;
+            flex-wrap: wrap; /* 允许换行适应手机 */
+            gap: 15px;
+            border-bottom: 4px solid #5d4037;
+        }
+
+        .score-box {
+            background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 5px;
+            font-size: 20px; border: 2px solid #ffd700;
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        .timer-box { font-size: 18px; color: #ddd; display: flex; align-items: center; gap: 5px; }
+
+        .card {
+            width: 60px; height: 70px; background: #eee; border-radius: 5px;
+            cursor: pointer; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; position: relative; border: 2px solid #444;
+            transition: transform 0.1s; overflow: hidden;
+        }
+        .card.selected { border-color: yellow; box-shadow: 0 0 15px yellow; transform: scale(1.1); }
+        .card.disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+        .card-cost { position: absolute; bottom: 2px; right: 2px; font-size: 12px; color: black; font-weight: bold; z-index: 2; text-shadow: 1px 1px 0 #fff;}
+        .card img { width: 45px; height: 45px; object-fit: contain; }
+
+        .end-btn {
+            background: #c0392b; color: white; border: 2px solid #e74c3c;
+            padding: 8px 16px; font-size: 16px; font-weight: bold; border-radius: 8px;
+            cursor: pointer; box-shadow: 0 4px 0 #922b21;
+        }
+        .end-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        .plant-info { font-size: 12px; opacity: 0.8; display: none; } /* 手机上隐藏详情 */
+
+        /* --- 3. 下方：识字挑战区 --- */
         #quiz-panel {
-            flex: 1;
+            flex: 1; /* 占据剩余空间 */
             background: var(--quiz-bg);
-            border-top: 5px solid #5d4037;
             display: flex;
             flex-direction: row;
             align-items: center;
             justify-content: center;
-            padding: 10px 40px;
+            padding: 10px 20px;
             box-sizing: border-box;
-            gap: 40px;
+            gap: 20px;
             position: relative;
+            overflow-y: auto; /* 手机竖屏内容多时可滚动 */
         }
 
-        .quiz-group-left { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; width: 200px; }
-        .quiz-group-center { display: flex; flex-direction: row; align-items: center; gap: 20px; }
+        .quiz-group-left { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; width: 180px; }
+        .quiz-group-center { display: flex; flex-direction: row; align-items: center; gap: 15px; }
         .quiz-group-right { flex: 1; max-width: 600px; }
 
-        .quiz-type-label { font-size: 18px; color: #888; margin-bottom: 5px; }
-        .quiz-title { font-size: 28px; color: #5d4037; font-weight: bold; margin: 0; }
-        .feedback-area { font-size: 20px; font-weight: bold; margin-top: 10px; height: 30px; }
+        .quiz-type-label { font-size: 16px; color: #888; margin-bottom: 5px; }
+        .quiz-title { font-size: 24px; color: #5d4037; font-weight: bold; margin: 0; }
+        .feedback-area { font-size: 18px; font-weight: bold; margin-top: 5px; height: 25px; }
         .correct { color: green; }
 
         .main-display {
-            font-size: 70px; color: #d35400; font-weight: bold;
-            background: #fff; padding: 10px 30px; border-radius: 15px;
-            box-shadow: 0 4px 0 #ddd; min-width: 140px; text-align: center;
+            font-size: 60px; color: #d35400; font-weight: bold;
+            background: #fff; padding: 5px 20px; border-radius: 15px;
+            box-shadow: 0 4px 0 #ddd; min-width: 100px; text-align: center;
             font-family: "KaiTi", "楷体", serif;
         }
 
         .main-speaker-btn {
-            font-size: 40px; cursor: pointer; background: #ffecb3; border: 3px solid #ffa000;
-            border-radius: 50%; width: 80px; height: 80px; display: flex;
+            font-size: 35px; cursor: pointer; background: #ffecb3; border: 3px solid #ffa000;
+            border-radius: 50%; width: 70px; height: 70px; display: flex;
             align-items: center; justify-content: center; box-shadow: 0 4px 0 #ffa000;
-            transition: transform 0.1s;
         }
         .main-speaker-btn:active { transform: scale(0.95); box-shadow: none; }
 
         .options-container { width: 100%; }
 
         .char-grid, .pinyin-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
         }
 
         .option-btn-char {
-            background: #3498db; color: white; border: none; padding: 0; font-size: 36px;
-            border-radius: 10px; cursor: pointer; box-shadow: 0 5px 0 #2980b9;
-            font-family: "KaiTi", "楷体", serif; height: 70px;
+            background: #3498db; color: white; border: none; padding: 0; font-size: 32px;
+            border-radius: 10px; cursor: pointer; box-shadow: 0 4px 0 #2980b9;
+            font-family: "KaiTi", "楷体", serif; height: 60px;
         }
         .option-btn-char:active { transform: translateY(4px); box-shadow: none; }
 
         .pinyin-option-row { display: flex; gap: 8px; }
         .option-btn-pinyin {
             flex: 1;
-            background: #9b59b6; color: white; border: none; height: 60px; font-size: 26px;
+            background: #9b59b6; color: white; border: none; height: 55px; font-size: 24px;
             border-radius: 10px; cursor: pointer; box-shadow: 0 4px 0 #8e44ad; font-weight: bold;
         }
         .option-btn-pinyin:active { transform: translateY(4px); box-shadow: none; }
 
         .small-speaker {
-            width: 50px; height: 60px; background: #f1c40f; border-radius: 10px;
+            width: 50px; height: 55px; background: #f1c40f; border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; font-size: 24px; border-bottom: 4px solid #d35400; color: #333;
         }
@@ -199,7 +202,7 @@
             background: rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center;
             z-index: 100; pointer-events: none; opacity: 0; transition: opacity 0.2s;
         }
-        #wrong-mark { font-size: 200px; color: red; font-weight: bold; transform: scale(0.5); transition: transform 0.2s; }
+        #wrong-mark { font-size: 150px; color: red; font-weight: bold; transform: scale(0.5); transition: transform 0.2s; }
         .show-wrong { opacity: 1 !important; }
         .show-wrong #wrong-mark { transform: scale(1) !important; }
 
@@ -208,85 +211,143 @@
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.95); display: flex; justify-content: center;
             align-items: center; flex-direction: column; z-index: 200; color: white;
-            padding: 20px;
+            padding: 20px; text-align: center;
         }
-        #game-over { display: none; } /* 初始隐藏 */
+        #game-over { display: none; }
 
-        .game-over-title { font-size: 50px; margin-bottom: 20px; font-weight: bold; color: #e74c3c; }
-        .game-stats { font-size: 24px; margin-bottom: 20px; color: #f1c40f; }
+        .game-over-title { font-size: 40px; margin-bottom: 20px; font-weight: bold; color: #e74c3c; }
+        .game-stats { font-size: 20px; margin-bottom: 20px; color: #f1c40f; }
 
         .review-box {
-            background: rgba(255,255,255,0.1); width: 80%; max-width: 600px;
-            border-radius: 10px; padding: 20px; margin-bottom: 30px;
-            max-height: 200px; overflow-y: auto; text-align: center;
+            background: rgba(255,255,255,0.1); width: 90%; max-width: 500px;
+            border-radius: 10px; padding: 15px; margin-bottom: 20px;
+            max-height: 25vh; overflow-y: auto; text-align: center;
         }
-        .review-title { color: #aaa; font-size: 16px; margin-bottom: 10px; border-bottom: 1px solid #555; padding-bottom: 5px; }
+        .review-title { color: #aaa; font-size: 14px; margin-bottom: 10px; border-bottom: 1px solid #555; padding-bottom: 5px; }
         .review-item {
             display: inline-block; background: #eee; color: #333;
-            padding: 5px 15px; margin: 5px; border-radius: 20px; font-size: 20px;
+            padding: 5px 12px; margin: 5px; border-radius: 15px; font-size: 18px;
             font-family: "KaiTi", "楷体", serif;
         }
 
         .start-btn {
-            font-size: 30px; padding: 20px 60px;
-            cursor: pointer; background: #fff; border: none; border-radius: 60px;
-            font-weight: bold; color: #333; transition: transform 0.2s;
+            font-size: 24px; padding: 15px 40px;
+            cursor: pointer; background: #fff; border: none; border-radius: 50px;
+            font-weight: bold; color: #333; transition: transform 0.2s; margin-top: 20px;
         }
         .start-btn:hover { transform: scale(1.05); }
+
+        /* --- 📱 移动端/竖屏 适配 --- */
+        @media (max-width: 900px) {
+            /* 1. 游戏区自适应 */
+            #game-wrapper {
+                /* 高度由JS根据宽度等比计算设置 */
+                width: 100%;
+                overflow: hidden;
+            }
+            #lawn {
+                /* 缩放由JS控制 transform */
+                transform-origin: top left;
+            }
+
+            /* 2. 道具栏调整 */
+            #top-bar {
+                justify-content: space-between;
+                padding: 5px 10px;
+            }
+            .score-box { font-size: 16px; padding: 5px 10px; min-width: auto; margin-right: 0; }
+            .timer-box { font-size: 14px; margin-right: 0; }
+            .plant-info { display: none; } /* 隐藏详情文字 */
+            .card { width: 55px; height: 65px; margin-right: 5px; }
+            .end-btn { width: 100%; margin-top: 5px; font-size: 18px; padding: 12px; } /* 结束按钮变大条 */
+
+            /* 3. 识字区变为竖向 */
+            #quiz-panel {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 10px;
+            }
+            .quiz-group-left {
+                width: 100%;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            .quiz-group-center {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 15px;
+            }
+            .quiz-group-right {
+                width: 100%;
+                max-width: none;
+            }
+            .quiz-title { font-size: 20px; }
+            .quiz-type-label { font-size: 14px; margin: 0; }
+            .feedback-area { margin-top: 0; font-size: 14px; }
+            .option-btn-char { height: 70px; font-size: 36px; } /* 增大按钮 */
+            .option-btn-pinyin { height: 60px; font-size: 28px; }
+            .small-speaker { height: 60px; width: 60px; }
+        }
     </style>
 </head>
 <body>
 
     <div id="start-overlay">
-        <h1>识字大战僵尸 (复习版)</h1>
-        <p>👂 听音选字 & 👁️ 看字选拼音</p>
-        <p style="font-size:18px; color:#aaa;">(请确保 peashooter.png 和 zombie.png 已就位)</p>
+        <h1>识字大战僵尸 (移动适配版)</h1>
+        <p>🧟 抵御僵尸 | 📝 趣味识字</p>
+        <p style="font-size:16px; color:#aaa; margin: 10px 0;">(请使用手机竖屏或电脑游玩)</p>
         <button class="start-btn" onclick="startGame()">开始游戏</button>
     </div>
 
-    <!-- 顶部 -->
-    <div id="top-bar">
-        <div class="score-box">☀️ <span id="score">0</span></div>
-        <div class="timer-box">⏱️ <span id="game-time">00:00</span></div>
-        <div class="card" id="card-peashooter" onclick="selectPlant('peashooter', 100)">
-            <img src="peashooter.png" alt="Pea" onerror="this.style.display='none';this.parentNode.innerText='🌱'">
-            <div class="card-cost">100</div>
-        </div>
-        <div style="margin-left: 20px; font-size: 14px; opacity: 0.8;">
-            豌豆伤害: 25 | 攻速: 1.4秒
-        </div>
-        <!-- 结束按钮 -->
-        <button class="end-btn" onclick="handleGameOver('manual')">🛑 结束游戏</button>
-    </div>
-
-    <!-- 游戏区 -->
+    <!-- 1. 游戏区 (顶部) -->
     <div id="game-wrapper">
         <div id="wave-message">💀 又一波僵尸来了！</div>
         <div id="lawn"></div>
 
-        <!-- 游戏结束面板 (复用) -->
+        <!-- 游戏结束面板 (居中显示) -->
         <div id="game-over">
             <div class="game-over-title" id="go-title">游戏结束</div>
             <div class="game-stats" id="go-stats">答对: 0</div>
 
             <div class="review-box">
                 <div class="review-title">错题本 (本次做错的字)</div>
-                <div id="go-review-list" style="color: #fff;">
-                    <!-- 动态插入错题 -->
-                </div>
+                <div id="go-review-list" style="color: #fff;"></div>
             </div>
 
             <button class="start-btn" onclick="location.reload()">重新挑战</button>
         </div>
     </div>
 
-    <!-- 答题区 -->
+    <!-- 2. 道具栏 (中间) -->
+    <div id="top-bar">
+        <div style="display:flex; align-items:center;">
+            <div class="score-box">☀️ <span id="score">0</span></div>
+            <div class="timer-box" style="margin-left:10px;">⏱️ <span id="game-time">00:00</span></div>
+        </div>
+
+        <div style="display:flex; align-items:center;">
+            <div class="card" id="card-peashooter" onclick="selectPlant('peashooter', 100)">
+                <img src="peashooter.png" alt="Pea" onerror="this.style.display='none';this.parentNode.innerText='🌱'">
+                <div class="card-cost">100</div>
+            </div>
+            <span class="plant-info" style="color:white; margin-left:10px;">伤害25 攻速1.4s</span>
+        </div>
+
+        <!-- 结束按钮 (手机上会单独一行) -->
+        <button class="end-btn" onclick="handleGameOver('manual')">🛑 结束游戏</button>
+    </div>
+
+    <!-- 3. 识字区 (底部) -->
     <div id="quiz-panel">
         <div id="wrong-overlay"><div id="wrong-mark">❌</div></div>
 
         <div class="quiz-group-left">
-            <div class="quiz-type-label" id="quiz-mode-label">模式加载中...</div>
-            <div class="quiz-title" id="quiz-title">题目要求</div>
+            <div>
+                <div class="quiz-type-label" id="quiz-mode-label">模式加载中...</div>
+                <div class="quiz-title" id="quiz-title">题目要求</div>
+            </div>
             <div class="feedback-area" id="feedback"></div>
         </div>
 
@@ -297,7 +358,7 @@
 
         <div class="quiz-group-right">
             <div class="options-container" id="options-container"></div>
-            <div style="text-align: right; margin-top: 5px; color: #888;">答对 +30 / 答错 -10</div>
+            <!-- <div style="text-align: right; margin-top: 5px; color: #888; font-size:12px;">答对 +30 / 答错 -10</div> -->
         </div>
     </div>
 
@@ -317,7 +378,7 @@
           {char: '爸', pinyin: 'bà'}, {char: '妈', pinyin: 'mā'}, {char: '棋', pinyin: 'qí'},
           {char: '鸡', pinyin: 'jī'}, {char: '马', pinyin: 'mǎ'}, {char: '土', pinyin: 'tǔ'},
           {char: '不', pinyin: 'bù'}, {char: '字', pinyin: 'zì'}, {char: '词', pinyin: 'cí'},
-          {char: '语', pinyin: 'yǒ'}, {char: '句', pinyin: 'jù'}, {char: '画', pinyin: 'huà'},
+          {char: '语', pinyin: 'yǔ'}, {char: '句', pinyin: 'jù'}, {char: '画', pinyin: 'huà'},
           {char: '打', pinyin: 'dǎ'}, {char: '桌', pinyin: 'zhuō'}, {char: '纸', pinyin: 'zhǐ'},
           {char: '文', pinyin: 'wén'}, {char: '数', pinyin: 'shù'}, {char: '学', pinyin: 'xué'},
           {char: '音', pinyin: 'yīn'}, {char: '乐', pinyin: 'lè'}, {char: '妹', pinyin: 'mèi'},
@@ -360,7 +421,7 @@
         const state = {
             score: 0,
             selectedPlant: null,
-            gridSize: 100,
+            gridSize: 100, // 逻辑网格大小，不受缩放影响
             rows: 5,
             cols: 9,
             plants: [],
@@ -371,14 +432,15 @@
             startTime: 0,
             lastZombieSpawn: 0,
             waveLevel: 0,
-            // 统计数据
             correctCount: 0,
-            wrongAnswers: [] // 存储 {char, pinyin} 对象
+            wrongAnswers: [],
+            gameScale: 1 // 当前缩放比例
         };
 
         const elScore = document.getElementById('score');
         const elTime = document.getElementById('game-time');
         const elLawn = document.getElementById('lawn');
+        const elGameWrapper = document.getElementById('game-wrapper');
         const elCardPea = document.getElementById('card-peashooter');
         const elWaveMsg = document.getElementById('wave-message');
         const synth = window.speechSynthesis;
@@ -398,19 +460,49 @@
         const elGoStats = document.getElementById('go-stats');
         const elGoReviewList = document.getElementById('go-review-list');
 
-        // --- 2. 核心游戏逻辑 ---
+        // --- 核心：屏幕适配逻辑 ---
+        function resizeGameWindow() {
+            const screenWidth = window.innerWidth;
+            const logicalWidth = 900;
+            const logicalHeight = 500;
+
+            // 如果屏幕比游戏逻辑宽度小，则缩放；否则保持原样（或居中）
+            if (screenWidth < logicalWidth) {
+                state.gameScale = screenWidth / logicalWidth;
+                elLawn.style.transform = `scale(${state.gameScale})`;
+                elLawn.style.transformOrigin = 'top left'; // 必须左上角对齐才能无缝填充
+                elGameWrapper.style.height = (logicalHeight * state.gameScale) + 'px';
+            } else {
+                state.gameScale = 1;
+                elLawn.style.transform = 'scale(1)';
+                elLawn.style.transformOrigin = 'top center';
+                elGameWrapper.style.height = '500px';
+            }
+        }
+
+        // 监听窗口大小改变
+        window.addEventListener('resize', resizeGameWindow);
+        // 初始化一次
+        resizeGameWindow();
+
+
+        // --- 2. 游戏流程 ---
 
         function startGame() {
             document.getElementById('start-overlay').style.display = 'none';
             state.isGameStarted = true;
             state.startTime = Date.now();
+
+            // 确保尺寸正确
+            resizeGameWindow();
+
             initQuiz();
             updateUI();
             requestAnimationFrame(gameLoop);
         }
 
         function handleGameOver(reason) {
-            if (state.isGameOver) return; // 防止重复触发
+            if (state.isGameOver) return;
             state.isGameOver = true;
             elGameOverPanel.style.display = 'flex';
 
@@ -425,14 +517,10 @@
                 speakStr += "游戏结束。";
             }
 
-            // 更新统计数据
             elGoStats.innerText = `本次答对: ${state.correctCount} 题`;
             speakStr += `你一共答对了 ${state.correctCount} 道题。`;
 
-            // 更新错题列表
             elGoReviewList.innerHTML = '';
-
-            // 去重，防止同一个字做错多次
             const uniqueWrongs = [];
             const map = new Map();
             for (const item of state.wrongAnswers) {
@@ -457,13 +545,10 @@
                 speakStr += "以下这些字答错了，请注意复习：" + wrongWordsStr;
             }
 
-            // 播放语音总结
-            setTimeout(() => {
-                speakText(speakStr);
-            }, 500);
+            setTimeout(() => { speakText(speakStr); }, 500);
         }
 
-        // --- 3. 识字题库系统 ---
+        // --- 3. 识字逻辑 ---
         let currentQuestion = null;
         let isProcessing = false;
 
@@ -482,7 +567,6 @@
                 let r = Math.floor(Math.random() * wordData.length);
                 if(r !== targetIndex && !distractors.includes(wordData[r])) distractors.push(wordData[r]);
             }
-
             let options = [...distractors, target];
             options.sort(() => Math.random() - 0.5);
 
@@ -490,9 +574,7 @@
 
             renderQuiz();
 
-            if (mode === 'LISTEN') {
-                setTimeout(speakQuestion, 300);
-            }
+            if (mode === 'LISTEN') setTimeout(speakQuestion, 300);
         }
 
         function speakText(text) {
@@ -536,7 +618,7 @@
                 elQuizLabel.innerText = "模式：👁️ 看字选音";
                 elQuizTitle.innerText = "这个字的拼音是？";
                 elMainDisplay.innerText = q.target.char;
-                elMainSpeaker.style.visibility = 'hidden'; // 看字模式不许读
+                elMainSpeaker.style.visibility = 'hidden';
 
                 const grid = document.createElement('div');
                 grid.className = 'pinyin-grid';
@@ -563,28 +645,24 @@
             if (isProcessing || state.isGameOver) return;
 
             if (selected === currentQuestion.target) {
-                // 答对逻辑
-                elFeedback.innerText = "答对了！+30 阳光";
+                elFeedback.innerText = "✅ 答对了！";
                 elFeedback.className = "feedback-area correct";
                 addScore(30);
-                state.correctCount++; // 记录答对数
+                state.correctCount++;
                 isProcessing = true;
                 setTimeout(generateQuestion, 800);
             } else {
-                // 答错逻辑
                 addScore(-10);
-                state.wrongAnswers.push(currentQuestion.target); // 记录错题
+                state.wrongAnswers.push(currentQuestion.target);
                 showWrongAnimation();
-                elFeedback.innerText = "不对哦，再试一次！(-10)";
+                elFeedback.innerText = "❌ 不对哦，再试一次！";
                 elFeedback.style.color = "red";
             }
         }
 
         function showWrongAnimation() {
             elWrongOverlay.classList.add('show-wrong');
-            setTimeout(() => {
-                elWrongOverlay.classList.remove('show-wrong');
-            }, 600);
+            setTimeout(() => { elWrongOverlay.classList.remove('show-wrong'); }, 600);
         }
 
         // --- 4. 经济与操作 ---
@@ -608,11 +686,27 @@
                 elCardPea.classList.add('selected');
             }
         }
+
+        // 核心修正：支持缩放后的点击坐标映射
         elLawn.addEventListener('click', (e) => {
             if (!state.selectedPlant || state.isGameOver) return;
+
             const rect = elLawn.getBoundingClientRect();
-            const col = Math.floor((e.clientX - rect.left) / state.gridSize);
-            const row = Math.floor((e.clientY - rect.top) / state.gridSize);
+
+            // 1. 获取点击相对于 lawn 左上角的像素位置
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // 2. 将视觉坐标映射回 900x500 的逻辑坐标
+            // 因为 rect.width 已经是缩放后的宽度，所以 (clickX / rect.width) 得到了百分比
+            // 再乘以 900 得到逻辑X
+            const logicalX = (clickX / rect.width) * 900;
+            const logicalY = (clickY / rect.height) * 500;
+
+            // 3. 计算行列
+            const col = Math.floor(logicalX / state.gridSize);
+            const row = Math.floor(logicalY / state.gridSize);
+
             if (col < 0 || col >= state.cols || row < 0 || row >= state.rows) return;
 
             const exists = state.plants.find(p => p.row === row && p.col === col);
@@ -661,9 +755,7 @@
         function showWaveMessage(msg) {
             elWaveMsg.innerText = msg;
             elWaveMsg.style.display = 'block';
-            setTimeout(() => {
-                elWaveMsg.style.display = 'none';
-            }, 2000);
+            setTimeout(() => { elWaveMsg.style.display = 'none'; }, 2000);
         }
 
         function spawnZombie() {
