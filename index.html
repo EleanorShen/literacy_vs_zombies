@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>识字大战僵尸 - 修复版</title>
+    <title>识字大战僵尸 - 安卓音频终极修复版</title>
     <style>
         :root {
             --lawn-green: #2ecc71;
@@ -206,7 +206,6 @@
         .show-wrong { opacity: 1 !important; }
         .show-wrong #wrong-mark { transform: scale(1) !important; }
 
-        /* --- Overlay Screen Styles --- */
         .overlay-screen {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.95); display: flex; justify-content: center;
@@ -229,7 +228,6 @@
             font-family: "KaiTi", "楷体", serif;
         }
 
-        /* 模式选择样式 */
         .mode-selection { margin: 20px 0; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; width: 100%; max-width: 400px; }
         .mode-title { font-size: 18px; margin-bottom: 10px; color: #f1c40f; }
         .mode-options-row { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
@@ -252,7 +250,6 @@
         .start-btn:hover { transform: scale(1.05); }
         .error-msg { color: #e74c3c; margin-top: 10px; height: 20px; font-weight: bold; display:none;}
 
-        /* --- 📱 移动端适配 CSS --- */
         @media (max-width: 900px) {
             #top-bar { justify-content: space-between; padding: 5px 10px; }
             .score-box { font-size: 16px; padding: 5px 10px; min-width: auto; margin-right: 0; }
@@ -289,25 +286,25 @@
 <body>
 
     <div id="start-overlay" class="overlay-screen">
-        <h1>识字大战僵尸 (移动音频修复版)</h1>
+        <h1>识字大战僵尸</h1>
         <p>🧟 抵御僵尸 | 📝 趣味识字</p>
 
         <div class="mode-selection">
-            <div class="mode-title">请选择挑战题型 (可多选):</div>
+            <div class="mode-title">请选择挑战题型:</div>
             <div class="mode-options-row">
                 <label class="mode-checkbox-label">
                     <input type="checkbox" id="mode-listen" checked>
-                    👂 听音辨字
+                    👁️ 看字选音
                 </label>
                 <label class="mode-checkbox-label">
                     <input type="checkbox" id="mode-read" checked>
-                    👁️ 看字选音
+                    👂 听音辨字
                 </label>
             </div>
         </div>
 
         <div id="start-error" class="error-msg">请至少选择一种模式！</div>
-        <button class="start-btn" onclick="startGame()">开始游戏</button>
+        <button class="start-btn" id="btn-start-game">开始游戏</button>
     </div>
 
     <div id="game-over" class="overlay-screen">
@@ -371,7 +368,22 @@
     <script>
         // --- 1. 数据配置 ---
         const wordData = [
-          {char: '包', pinyin: 'bāo'}, {char: '尺', pinyin: 'chǐ'}, {char: '作', pinyin: 'zuò'},
+          {char: '采', pinyin: 'cǎi'}, {char: '莲', pinyin: 'lián'},
+          {char: '鱼', pinyin: 'yú'}, {char: '东', pinyin: 'dōng'}, {char: '西', pinyin: 'xī'},
+          {char: '北', pinyin: 'běi'}, {char: '尖', pinyin: 'jiān'}, {char: '说', pinyin: 'shuō'},
+          {char: '春', pinyin: 'chūn'}, {char: '青', pinyin: 'qīng'}, {char: '蛙', pinyin: 'wā'},
+          {char: '夏', pinyin: 'xià'}, {char: '弯', pinyin: 'wān'}, {char: '就', pinyin: 'jiù'},
+          {char: '冬', pinyin: 'dōng'}, {char: '男', pinyin: 'nán'}, {char: '女', pinyin: 'nǚ'},
+          {char: '开', pinyin: 'kāi'}, {char: '关', pinyin: 'guān'}, {char: '正', pinyin: 'zhèng'},
+          {char: '反', pinyin: 'fǎn'}, {char: '远', pinyin: 'yuǎn'}, {char: '有', pinyin: 'yǒu'},
+          {char: '色', pinyin: 'sè'}, {char: '近', pinyin: 'jìn'}, {char: '听', pinyin: 'tīng'},
+          {char: '无', pinyin: 'wú'}, {char: '声', pinyin: 'shēng'}, {char: '去', pinyin: 'qù'},
+          {char: '还', pinyin: 'hái'}, {char: '来', pinyin: 'lái'}, {char: '多', pinyin: 'duō'},
+          {char: '少', pinyin: 'shǎo'}, {char: '黄', pinyin: 'huáng'}, {char: '牛', pinyin: 'niú'},
+          {char: '只', pinyin: 'zhī'}, {char: '猫', pinyin: 'māo'}, {char: '边', pinyin: 'biān'},
+          {char: '鸭', pinyin: 'yā'}, {char: '果', pinyin: 'guǒ'}, {char: '苹', pinyin: 'píng'},
+          {char: '杏', pinyin: 'xìng'},
+          {char: '桃', pinyin: 'táo'}, {char: '书', pinyin: 'shū'},{char: '包', pinyin: 'bāo'}, {char: '尺', pinyin: 'chǐ'}, {char: '作', pinyin: 'zuò'},
 {char: '业', pinyin: 'yè'}, {char: '本', pinyin: 'běn'}, {char: '笔', pinyin: 'bǐ'},
 {char: '刀', pinyin: 'dāo'}, {char: '课', pinyin: 'kè'}, {char: '早', pinyin: 'zǎo'},
 {char: '校', pinyin: 'xiào'}, {char: '明', pinyin: 'míng'}, {char: '力', pinyin: 'lì'},
@@ -385,22 +397,7 @@
 {char: '夜', pinyin: 'yè'}, {char: '昨', pinyin: 'zuó'}, {char: '今', pinyin: 'jīn'},
 {char: '年', pinyin: 'nián'}, {char: '影', pinyin: 'yǐng'}, {char: '前', pinyin: 'qián'},
 {char: '后', pinyin: 'hòu'}, {char: '黑', pinyin: 'hēi'}, {char: '狗', pinyin: 'gǒu'},
-{char: '左', pinyin: 'zuǒ'}, {char: '右', pinyin: 'yòu'}, {char: '它', pinyin: 'tā'},{char: '采', pinyin: 'cǎi'}, {char: '莲', pinyin: 'lián'},
-{char: '鱼', pinyin: 'yú'}, {char: '东', pinyin: 'dōng'}, {char: '西', pinyin: 'xī'},
-{char: '北', pinyin: 'běi'}, {char: '尖', pinyin: 'jiān'}, {char: '说', pinyin: 'shuō'},
-{char: '春', pinyin: 'chūn'}, {char: '青', pinyin: 'qīng'}, {char: '蛙', pinyin: 'wā'},
-{char: '夏', pinyin: 'xià'}, {char: '弯', pinyin: 'wān'}, {char: '就', pinyin: 'jiù'},
-{char: '冬', pinyin: 'dōng'}, {char: '男', pinyin: 'nán'}, {char: '女', pinyin: 'nǚ'},
-{char: '开', pinyin: 'kāi'}, {char: '关', pinyin: 'guān'}, {char: '正', pinyin: 'zhèng'},
-{char: '反', pinyin: 'fǎn'}, {char: '远', pinyin: 'yuǎn'}, {char: '有', pinyin: 'yǒu'},
-{char: '色', pinyin: 'sè'}, {char: '近', pinyin: 'jìn'}, {char: '听', pinyin: 'tīng'},
-{char: '无', pinyin: 'wú'}, {char: '声', pinyin: 'shēng'}, {char: '去', pinyin: 'qù'},
-{char: '还', pinyin: 'hái'}, {char: '来', pinyin: 'lái'}, {char: '多', pinyin: 'duō'},
-{char: '少', pinyin: 'shǎo'}, {char: '黄', pinyin: 'huáng'}, {char: '牛', pinyin: 'niú'},
-{char: '只', pinyin: 'zhī'}, {char: '猫', pinyin: 'māo'}, {char: '边', pinyin: 'biān'},
-{char: '鸭', pinyin: 'yā'}, {char: '果', pinyin: 'guǒ'}, {char: '苹', pinyin: 'píng'},
-{char: '杏', pinyin: 'xìng'},
-{char: '桃', pinyin: 'táo'}, {char: '书', pinyin: 'shū'}
+{char: '左', pinyin: 'zuǒ'}, {char: '右', pinyin: 'yòu'}, {char: '它', pinyin: 'tā'}
         ];
 
         const ZOMBIE_TYPES = {
@@ -410,7 +407,7 @@
         };
 
         const state = {
-            score: 0,
+            score: 50,
             selectedPlant: null,
             gridSize: 100,
             rows: 5,
@@ -426,7 +423,8 @@
             correctCount: 0,
             wrongAnswers: [],
             gameScale: 1,
-            activeModes: ['LISTEN', 'READ']
+            activeModes: ['LISTEN', 'READ'],
+            audioUnlocked: false
         };
 
         const elScore = document.getElementById('score');
@@ -467,22 +465,15 @@
         resizeGameWindow();
 
 
-        // --- 2. 游戏流程 ---
+        // --- 2. 游戏流程 & 音频修复核心 ---
 
-        // 关键修复：手机浏览器必须在用户点击事件中“解锁”语音合成
-        function unlockAudio() {
-            if (!synth) return;
-            // 播放一个空字符来激活移动端音频引擎
-            const u = new SpeechSynthesisUtterance("");
-            u.volume = 0;
-            synth.speak(u);
-        }
+        // 绑定点击事件：Gesture Proxy Pattern
+        document.getElementById('btn-start-game').addEventListener('click', () => {
+            unlockAudioAndStart();
+        });
 
-        function startGame() {
-            // 解锁音频
-            unlockAudio();
-
-            // 获取用户选择的模式
+        function unlockAudioAndStart() {
+            // 1. 获取模式
             const useListen = document.getElementById('mode-listen').checked;
             const useRead = document.getElementById('mode-read').checked;
             const errorMsg = document.getElementById('start-error');
@@ -492,9 +483,35 @@
                 return;
             }
 
-            // 更新状态
+            // 2. 音频解锁逻辑 (同步执行)
+            if (synth && !state.audioUnlocked) {
+                // 强制 Resume (Chrome策略)
+                if (synth.resume) synth.resume();
+
+                // 取消之前可能卡住的任务
+                synth.cancel();
+
+                // 技巧1：发一个空音
+                const u1 = new SpeechSynthesisUtterance("");
+                u1.volume = 0;
+                synth.speak(u1);
+
+                // 技巧2：发一个极短的实际声音 (空格)，有些人耳听不见但能激活引擎
+                const u2 = new SpeechSynthesisUtterance(" ");
+                u2.volume = 0.1;
+                u2.rate = 10;
+
+                // 技巧3：挂载到全局防止被 GC (部分安卓机必须)
+                window.unlockUtterance = u2;
+                u2.onend = () => { window.unlockUtterance = null; };
+
+                synth.speak(u2);
+
+                state.audioUnlocked = true;
+            }
+
+            // 3. 启动游戏
             state.activeModes = [];
-            // 根据用户反馈，这里的内部标识无需变动，我们在 renderQuiz 里互换显示逻辑即可
             if (useListen) state.activeModes.push('LISTEN');
             if (useRead) state.activeModes.push('READ');
 
@@ -505,7 +522,9 @@
             state.startTime = Date.now();
             resizeGameWindow();
 
+            // 4. 生成第一题 (注意：initQuiz 内部会调用 speakQuestion，此时仍在点击事件栈中)
             initQuiz();
+
             updateUI();
             requestAnimationFrame(gameLoop);
         }
@@ -553,6 +572,7 @@
                 speakStr += "以下这些字答错了，请注意复习：" + wrongWordsStr;
             }
 
+            // 延迟一点播放结束语，避免被点击音效覆盖
             setTimeout(() => { speakText(speakStr); }, 500);
         }
 
@@ -560,9 +580,12 @@
         let currentQuestion = null;
         let isProcessing = false;
 
-        function initQuiz() { generateQuestion(); }
+        function initQuiz() {
+            // 第一次生成题目，不使用 setTimeout，利用点击事件的权限
+            generateQuestion(true);
+        }
 
-        function generateQuestion() {
+        function generateQuestion(isFirstTime = false) {
             if (state.isGameOver) return;
             isProcessing = false;
 
@@ -584,25 +607,46 @@
 
             renderQuiz();
 
-            // 每次出题如果模式是听音，或者看字但想提示一下，都尝试播放
-            if (mode === 'LISTEN') setTimeout(speakQuestion, 500);
+            if (mode === 'LISTEN') {
+                if (isFirstTime) {
+                    // 第一次：直接同步调用，确保利用点击权限
+                    speakQuestion();
+                } else {
+                    // 后续：稍微延迟一点，体验更好
+                    setTimeout(speakQuestion, 500);
+                }
+            }
         }
 
-        // 修复版播放函数
+        // 强化的语音播放函数
         function speakText(text) {
             if (!synth) return;
-            // 播放前必须先取消，防止队列卡死
+
+            // 1. 再次确保 resume
+            if (synth.resume) synth.resume();
+
+            // 2. 必须先 cancel，否则安卓上容易卡死在队列中
             synth.cancel();
 
             const utterThis = new SpeechSynthesisUtterance(text);
             utterThis.lang = 'zh-CN';
             utterThis.rate = 0.8;
 
-            // 某些安卓设备可能需要重新获取 voices
+            // 3. 尝试显式指定中文语音包 (部分国产安卓ROM需要)
             const voices = synth.getVoices();
-            // 尝试找中文语音
             const zhVoice = voices.find(v => v.lang.includes('zh'));
             if(zhVoice) utterThis.voice = zhVoice;
+
+            // 4. 【核心修复】将对象挂载到全局变量，防止被垃圾回收(GC)
+            window.currentUtterance = utterThis;
+
+            utterThis.onend = () => {
+                window.currentUtterance = null; // 播放完毕释放
+            };
+            utterThis.onerror = (e) => {
+                console.error("TTS Error:", e);
+                window.currentUtterance = null;
+            }
 
             synth.speak(utterThis);
         }
@@ -619,17 +663,11 @@
 
             const q = currentQuestion;
 
-            // --- 逻辑互换修改处 ---
-            // 用户反馈：原本的对应关系反了。
-            // 现在的逻辑：
-            // LISTEN (听音辨字) -> 显示拼音/喇叭，选项是汉字。
-            // READ (看字选音) -> 显示汉字，选项是拼音。
-
+            // LISTEN (听音辨字) -> 显示拼音/喇叭，选项是汉字
             if (q.mode === 'LISTEN') {
-                // 听音辨字：看到拼音(辅助)，听到读音，选择汉字
                 elQuizLabel.innerText = "模式：👂 听音辨字";
                 elQuizTitle.innerText = "听到的是哪个字？";
-                elMainDisplay.innerText = q.target.pinyin; // 显示拼音辅助
+                elMainDisplay.innerText = q.target.pinyin;
                 elMainSpeaker.style.visibility = 'visible';
 
                 const grid = document.createElement('div');
@@ -637,18 +675,18 @@
                 q.options.forEach(opt => {
                     const btn = document.createElement('button');
                     btn.className = 'option-btn-char';
-                    btn.innerText = opt.char; // 选项是汉字
+                    btn.innerText = opt.char;
                     btn.onclick = () => checkAnswer(opt);
                     grid.appendChild(btn);
                 });
                 elOptionsContainer.appendChild(grid);
 
             } else {
-                // 看字选音：看到汉字，选择拼音
+                // READ (看字选音) -> 显示汉字，选项是拼音
                 elQuizLabel.innerText = "模式：👁️ 看字选音";
                 elQuizTitle.innerText = "这个字的拼音是？";
-                elMainDisplay.innerText = q.target.char; // 显示汉字
-                elMainSpeaker.style.visibility = 'hidden'; // 看字模式可以不需要大喇叭，或者也可以保留作为提示
+                elMainDisplay.innerText = q.target.char;
+                elMainSpeaker.style.visibility = 'hidden';
 
                 const grid = document.createElement('div');
                 grid.className = 'pinyin-grid';
@@ -657,13 +695,13 @@
                     row.className = 'pinyin-option-row';
                     const btn = document.createElement('button');
                     btn.className = 'option-btn-pinyin';
-                    btn.innerText = opt.pinyin; // 选项是拼音
+                    btn.innerText = opt.pinyin;
                     btn.onclick = () => checkAnswer(opt);
 
                     const spk = document.createElement('div');
                     spk.className = 'small-speaker';
                     spk.innerText = '🔊';
-                    spk.onclick = (e) => { e.stopPropagation(); speakText(opt.char); }; // 点击小喇叭读这个选项的音
+                    spk.onclick = (e) => { e.stopPropagation(); speakText(opt.char); };
 
                     row.appendChild(btn);
                     row.appendChild(spk);
@@ -679,10 +717,11 @@
             if (selected === currentQuestion.target) {
                 elFeedback.innerText = "✅ 答对了！";
                 elFeedback.className = "feedback-area correct";
-                addScore(40);
+                addScore(35);
                 state.correctCount++;
                 isProcessing = true;
-                setTimeout(generateQuestion, 800);
+                // 延迟生成下一题
+                setTimeout(() => generateQuestion(false), 800);
             } else {
                 addScore(-10);
                 state.wrongAnswers.push(currentQuestion.target);
@@ -719,7 +758,6 @@
             }
         }
 
-        // 点击逻辑
         elLawn.addEventListener('click', (e) => {
             if (!state.selectedPlant || state.isGameOver) return;
 
@@ -727,7 +765,6 @@
             const clickX = e.clientX - rect.left;
             const clickY = e.clientY - rect.top;
 
-            // 映射回逻辑坐标
             const logicalX = (clickX / rect.width) * 900;
             const logicalY = (clickY / rect.height) * 500;
 
@@ -836,7 +873,6 @@
             const secs = Math.floor((elapsed % 60000) / 1000);
             elTime.innerText = `${mins.toString().padStart(2,0)}:${secs.toString().padStart(2,0)}`;
 
-            // Wave Logic
             const minVal = elapsed / 60000;
             let currentWave = 0;
             if (minVal >= 4) currentWave = 2;
@@ -847,14 +883,12 @@
                 showWaveMessage("💀 又一波僵尸来了！");
             }
 
-            // Spawn Logic
             let currentSpawnRate = Math.max(1000, 4000 - (elapsed / 1000) * 10);
             if (Date.now() - state.lastZombieSpawn > currentSpawnRate) {
                 spawnZombie();
                 state.lastZombieSpawn = Date.now();
             }
 
-            // Plants Logic
             state.plants.forEach(plant => {
                 const hasTarget = state.zombies.some(z => z.row === plant.row && z.x > plant.col * state.gridSize);
                 if (hasTarget && Date.now() - plant.lastShot > 1400) {
@@ -863,7 +897,6 @@
                 }
             });
 
-            // Bullets Logic
             for (let i = state.bullets.length - 1; i >= 0; i--) {
                 let b = state.bullets[i];
                 b.x += b.speed;
@@ -887,7 +920,6 @@
                 }
             }
 
-            // Zombies Logic
             for (let i = state.zombies.length - 1; i >= 0; i--) {
                 let z = state.zombies[i];
                 if (z.isEating) {
