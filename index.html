@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>识字大战僵尸 - 题型自选版</title>
+    <title>识字大战僵尸 - 修复版</title>
     <style>
         :root {
             --lawn-green: #2ecc71;
@@ -239,9 +239,7 @@
             cursor: pointer; border: 2px solid #666; transition: 0.2s;
             user-select: none;
         }
-        /* 隐藏原生 checkbox */
         .mode-checkbox-label input { display: none; }
-        /* 选中状态 */
         .mode-checkbox-label:has(input:checked) {
             background: #2ecc71; border-color: #27ae60; color: #000; font-weight: bold;
         }
@@ -291,7 +289,7 @@
 <body>
 
     <div id="start-overlay" class="overlay-screen">
-        <h1>识字大战僵尸 (自选版)</h1>
+        <h1>识字大战僵尸 (移动音频修复版)</h1>
         <p>🧟 抵御僵尸 | 📝 趣味识字</p>
 
         <div class="mode-selection">
@@ -387,7 +385,22 @@
 {char: '夜', pinyin: 'yè'}, {char: '昨', pinyin: 'zuó'}, {char: '今', pinyin: 'jīn'},
 {char: '年', pinyin: 'nián'}, {char: '影', pinyin: 'yǐng'}, {char: '前', pinyin: 'qián'},
 {char: '后', pinyin: 'hòu'}, {char: '黑', pinyin: 'hēi'}, {char: '狗', pinyin: 'gǒu'},
-{char: '左', pinyin: 'zuǒ'}, {char: '右', pinyin: 'yòu'}, {char: '它', pinyin: 'tā'}
+{char: '左', pinyin: 'zuǒ'}, {char: '右', pinyin: 'yòu'}, {char: '它', pinyin: 'tā'},{char: '采', pinyin: 'cǎi'}, {char: '莲', pinyin: 'lián'},
+{char: '鱼', pinyin: 'yú'}, {char: '东', pinyin: 'dōng'}, {char: '西', pinyin: 'xī'},
+{char: '北', pinyin: 'běi'}, {char: '尖', pinyin: 'jiān'}, {char: '说', pinyin: 'shuō'},
+{char: '春', pinyin: 'chūn'}, {char: '青', pinyin: 'qīng'}, {char: '蛙', pinyin: 'wā'},
+{char: '夏', pinyin: 'xià'}, {char: '弯', pinyin: 'wān'}, {char: '就', pinyin: 'jiù'},
+{char: '冬', pinyin: 'dōng'}, {char: '男', pinyin: 'nán'}, {char: '女', pinyin: 'nǚ'},
+{char: '开', pinyin: 'kāi'}, {char: '关', pinyin: 'guān'}, {char: '正', pinyin: 'zhèng'},
+{char: '反', pinyin: 'fǎn'}, {char: '远', pinyin: 'yuǎn'}, {char: '有', pinyin: 'yǒu'},
+{char: '色', pinyin: 'sè'}, {char: '近', pinyin: 'jìn'}, {char: '听', pinyin: 'tīng'},
+{char: '无', pinyin: 'wú'}, {char: '声', pinyin: 'shēng'}, {char: '去', pinyin: 'qù'},
+{char: '还', pinyin: 'hái'}, {char: '来', pinyin: 'lái'}, {char: '多', pinyin: 'duō'},
+{char: '少', pinyin: 'shǎo'}, {char: '黄', pinyin: 'huáng'}, {char: '牛', pinyin: 'niú'},
+{char: '只', pinyin: 'zhī'}, {char: '猫', pinyin: 'māo'}, {char: '边', pinyin: 'biān'},
+{char: '鸭', pinyin: 'yā'}, {char: '果', pinyin: 'guǒ'}, {char: '苹', pinyin: 'píng'},
+{char: '杏', pinyin: 'xìng'},
+{char: '桃', pinyin: 'táo'}, {char: '书', pinyin: 'shū'}
         ];
 
         const ZOMBIE_TYPES = {
@@ -413,7 +426,7 @@
             correctCount: 0,
             wrongAnswers: [],
             gameScale: 1,
-            activeModes: ['LISTEN', 'READ'] // 默认全选
+            activeModes: ['LISTEN', 'READ']
         };
 
         const elScore = document.getElementById('score');
@@ -455,7 +468,20 @@
 
 
         // --- 2. 游戏流程 ---
+
+        // 关键修复：手机浏览器必须在用户点击事件中“解锁”语音合成
+        function unlockAudio() {
+            if (!synth) return;
+            // 播放一个空字符来激活移动端音频引擎
+            const u = new SpeechSynthesisUtterance("");
+            u.volume = 0;
+            synth.speak(u);
+        }
+
         function startGame() {
+            // 解锁音频
+            unlockAudio();
+
             // 获取用户选择的模式
             const useListen = document.getElementById('mode-listen').checked;
             const useRead = document.getElementById('mode-read').checked;
@@ -468,6 +494,7 @@
 
             // 更新状态
             state.activeModes = [];
+            // 根据用户反馈，这里的内部标识无需变动，我们在 renderQuiz 里互换显示逻辑即可
             if (useListen) state.activeModes.push('LISTEN');
             if (useRead) state.activeModes.push('READ');
 
@@ -539,7 +566,6 @@
             if (state.isGameOver) return;
             isProcessing = false;
 
-            // 随机从用户选定的模式中取一个
             const modeIndex = Math.floor(Math.random() * state.activeModes.length);
             const mode = state.activeModes[modeIndex];
 
@@ -558,14 +584,26 @@
 
             renderQuiz();
 
-            if (mode === 'LISTEN') setTimeout(speakQuestion, 300);
+            // 每次出题如果模式是听音，或者看字但想提示一下，都尝试播放
+            if (mode === 'LISTEN') setTimeout(speakQuestion, 500);
         }
 
+        // 修复版播放函数
         function speakText(text) {
+            if (!synth) return;
+            // 播放前必须先取消，防止队列卡死
             synth.cancel();
+
             const utterThis = new SpeechSynthesisUtterance(text);
             utterThis.lang = 'zh-CN';
             utterThis.rate = 0.8;
+
+            // 某些安卓设备可能需要重新获取 voices
+            const voices = synth.getVoices();
+            // 尝试找中文语音
+            const zhVoice = voices.find(v => v.lang.includes('zh'));
+            if(zhVoice) utterThis.voice = zhVoice;
+
             synth.speak(utterThis);
         }
 
@@ -581,10 +619,17 @@
 
             const q = currentQuestion;
 
+            // --- 逻辑互换修改处 ---
+            // 用户反馈：原本的对应关系反了。
+            // 现在的逻辑：
+            // LISTEN (听音辨字) -> 显示拼音/喇叭，选项是汉字。
+            // READ (看字选音) -> 显示汉字，选项是拼音。
+
             if (q.mode === 'LISTEN') {
+                // 听音辨字：看到拼音(辅助)，听到读音，选择汉字
                 elQuizLabel.innerText = "模式：👂 听音辨字";
-                elQuizTitle.innerText = "这个音对应哪个字？";
-                elMainDisplay.innerText = q.target.pinyin;
+                elQuizTitle.innerText = "听到的是哪个字？";
+                elMainDisplay.innerText = q.target.pinyin; // 显示拼音辅助
                 elMainSpeaker.style.visibility = 'visible';
 
                 const grid = document.createElement('div');
@@ -592,17 +637,18 @@
                 q.options.forEach(opt => {
                     const btn = document.createElement('button');
                     btn.className = 'option-btn-char';
-                    btn.innerText = opt.char;
+                    btn.innerText = opt.char; // 选项是汉字
                     btn.onclick = () => checkAnswer(opt);
                     grid.appendChild(btn);
                 });
                 elOptionsContainer.appendChild(grid);
 
             } else {
+                // 看字选音：看到汉字，选择拼音
                 elQuizLabel.innerText = "模式：👁️ 看字选音";
                 elQuizTitle.innerText = "这个字的拼音是？";
-                elMainDisplay.innerText = q.target.char;
-                elMainSpeaker.style.visibility = 'hidden';
+                elMainDisplay.innerText = q.target.char; // 显示汉字
+                elMainSpeaker.style.visibility = 'hidden'; // 看字模式可以不需要大喇叭，或者也可以保留作为提示
 
                 const grid = document.createElement('div');
                 grid.className = 'pinyin-grid';
@@ -611,12 +657,14 @@
                     row.className = 'pinyin-option-row';
                     const btn = document.createElement('button');
                     btn.className = 'option-btn-pinyin';
-                    btn.innerText = opt.pinyin;
+                    btn.innerText = opt.pinyin; // 选项是拼音
                     btn.onclick = () => checkAnswer(opt);
+
                     const spk = document.createElement('div');
                     spk.className = 'small-speaker';
                     spk.innerText = '🔊';
-                    spk.onclick = (e) => { e.stopPropagation(); speakText(opt.char); };
+                    spk.onclick = (e) => { e.stopPropagation(); speakText(opt.char); }; // 点击小喇叭读这个选项的音
+
                     row.appendChild(btn);
                     row.appendChild(spk);
                     grid.appendChild(row);
