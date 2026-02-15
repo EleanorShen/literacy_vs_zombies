@@ -1,0 +1,73 @@
+#quiz-panel {
+    height: 150px; /* 固定高度，或者让 flex-basis 控制 */
+    background: #ecf0f1;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 20px;
+    z-index: 5;
+    box-shadow: 0 -4px 8px rgba(0,0,0,0.2);
+}
+
+.quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#feedback-overlay {
+    position: absolute; top:0; left:0; right:0; bottom:0;
+    background: rgba(255,255,255,0.8);
+    display: none; justify-content: center; align-items: center;
+    z-index: 10;
+}
+.feedback-mark { font-size: 80px; color: red; }
+
+.quiz-main {
+    display: flex;
+    flex: 1;
+    align-items: center;
+}
+
+.question-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 20px;
+    min-width: 80px;
+}
+
+#main-display {
+    font-size: 48px;
+    font-weight: bold;
+    color: #d35400;
+}
+
+.options-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    height: 100%;
+}
+
+.option-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 5px;
+    font-size: 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.speaker-btn {
+    font-size: 24px;
+    cursor: pointer;
+    background: #f1c40f;
+    border-radius: 50%;
+    padding: 5px;
+    margin-top: 5px;
+}

@@ -1,0 +1,108 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Microsoft YaHei", sans-serif;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    background: #222;
+    color: white;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#overlay-screen {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.95); display: flex; justify-content: center;
+    align-items: center; flex-direction: column;
+    z-index: 9999;
+}
+
+#start-panel, #game-over-panel {
+    text-align: center;
+    max-width: 80%;
+}
+
+.primary-btn {
+    font-size: 24px; padding: 15px 40px;
+    cursor: pointer; background: #2ecc71; border: none; border-radius: 50px;
+    font-weight: bold; color: white; margin-top: 20px;
+}
+
+.small-btn {
+    font-size: 14px; padding: 5px 10px;
+    background: #e74c3c; border: none; border-radius: 5px; color: white;
+    margin-top: 10px; cursor: pointer;
+}
+
+#app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+#game-section {
+    flex: 1; /* 占据剩余空间 */
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    background: #333;
+}
+
+#game-wrapper {
+    flex: 1; /* 占据大部分空间 */
+    position: relative;
+    overflow: hidden;
+    background: #27ae60;
+    /* 网格背景 */
+    background-image: 
+        linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+    background-size: 50px 50px; /* 默认网格大小，JS会动态计算 */
+}
+
+#sidebar {
+    width: 80px; /* 右侧固定宽度 */
+    background: #2c3e50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    border-left: 2px solid #34495e;
+    z-index: 20;
+}
+
+.status-box {
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.card-slot {
+    width: 60px; height: 70px;
+    background: #ecf0f1;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid #bdc3c7;
+    color: #333;
+    position: relative;
+}
+
+.card-slot.selected { border-color: #f1c40f; box-shadow: 0 0 10px #f1c40f; }
+.card-slot.disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
+
+.card-cost {
+    font-size: 12px;
+    font-weight: bold;
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+}
