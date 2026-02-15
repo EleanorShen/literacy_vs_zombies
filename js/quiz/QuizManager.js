@@ -15,7 +15,9 @@ export default class QuizManager {
         this.synth = window.speechSynthesis;
         
         // Bind events
-        this.elSpeaker.addEventListener('click', () => this.speakCurrent());
+        if (this.elSpeaker) {
+            this.elSpeaker.addEventListener('click', () => this.speakCurrent());
+        }
     }
     
     start() {
@@ -31,8 +33,8 @@ export default class QuizManager {
     generateQuestion() {
         if (this.game.isGameOver) return;
         this.processing = false;
-        this.elFeedback.innerText = '';
-        this.elOptions.innerHTML = '';
+        if (this.elFeedback) this.elFeedback.innerText = '';
+        if (this.elOptions) this.elOptions.innerHTML = '';
         
         const mode = Math.random() > 0.5 ? 'LISTEN' : 'READ';
         const words = this.config.words; // 假设传入了词库
@@ -61,7 +63,7 @@ export default class QuizManager {
         if (q.mode === 'LISTEN') {
             document.getElementById('quiz-mode-label').innerText = '👂 听音辨字';
             this.elMainDisplay.innerText = q.target.pinyin;
-            this.elSpeaker.style.display = 'block';
+            if (this.elSpeaker) this.elSpeaker.style.display = 'block';
             
             q.options.forEach(opt => {
                 const btn = document.createElement('button');
@@ -74,7 +76,7 @@ export default class QuizManager {
         } else {
             document.getElementById('quiz-mode-label').innerText = '👁️ 看字选音';
             this.elMainDisplay.innerText = q.target.char;
-            this.elSpeaker.style.display = 'none';
+            if (this.elSpeaker) this.elSpeaker.style.display = 'none';
             
             q.options.forEach(opt => {
                 const btn = document.createElement('button');
@@ -101,8 +103,10 @@ export default class QuizManager {
             this.game.addScore(-10);
             
             // 错误动画
-            this.elFeedbackOverlay.style.display = 'flex';
-            setTimeout(() => { this.elFeedbackOverlay.style.display = 'none'; }, 500);
+            if (this.elFeedbackOverlay) {
+                this.elFeedbackOverlay.style.display = 'flex';
+                setTimeout(() => { this.elFeedbackOverlay.style.display = 'none'; }, 500);
+            }
         }
     }
     

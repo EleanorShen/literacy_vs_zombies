@@ -9,12 +9,14 @@
 #lawn {
     /* 网格的容器 */
     position: relative;
-    /* 5 cols x 9 rows */
-    width: 300px; /* 默认宽度，JS计算 */
-    height: 540px; /* 默认高度，JS计算 */
-    /* 背景色 */
+    /* 尺寸由 JS 动态计算 */
     background-color: #27ae60;
     cursor: crosshair;
+    /* 网格背景线 */
+    background-image: 
+        linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+    background-size: 50px 50px; /* JS 会动态覆盖 */
 }
 
 .entity {
@@ -87,4 +89,5 @@
     display: none;
     pointer-events: none;
     white-space: nowrap;
+    transition: opacity 0.5s ease;
 }

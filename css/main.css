@@ -56,12 +56,10 @@ body {
     flex: 1; /* 占据大部分空间 */
     position: relative;
     overflow: hidden;
-    background: #27ae60;
-    /* 网格背景 */
-    background-image: 
-        linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
-    background-size: 50px 50px; /* 默认网格大小，JS会动态计算 */
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #sidebar {

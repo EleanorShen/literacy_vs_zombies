@@ -7,6 +7,7 @@
     padding: 10px 20px;
     z-index: 5;
     box-shadow: 0 -4px 8px rgba(0,0,0,0.2);
+    position: relative; /* feedback overlay 定位基准 */
 }
 
 .quiz-header {
