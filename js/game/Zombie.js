@@ -1,30 +1,38 @@
 export default class Zombie {
     constructor(row, col, config, game) {
         this.game = game;
-        // 注意：竖版游戏中，col 是固定的（哪一列），row 是变化的（往下走）
-        // 这里参数 row 实际上是初始生成的位置（比如 -1），col 是跑道
-        this.col = col; 
-        this.y = row * game.gridSize; // 像素坐标
+        this.col = col;
+        this.y = row * game.gridSize;   // 像素坐标（从 -gridSize 开始）
         this.config = config;
         this.id = Math.random().toString(36).substr(2, 9);
-        
+
         this.hp = config.hp;
         this.maxHp = config.hp;
-        this.speed = config.speed;
-        this.damage = config.damage;
-        
+        this.gridSpeed = config.gridSpeed;       // 秒/格
+        this.damagePerSec = config.damagePerSec;
+
         this.isEating = false;
         this.targetPlant = null;
-        
-        this.el = this.createVisual();
+
+        // 撑杆僵尸专用
+        this.hasJumped = false;
+        this.isJumping = false;
+        this.jumpProgress = 0;
+        this.jumpStartY = 0;
+        this.jumpTargetY = 0;
+
+        this.el = this._createVisual();
     }
-    
-    createVisual() {
+
+    _createVisual() {
+        const gs = this.game.gridSize;
         const el = document.createElement('div');
-        el.className = 'entity zombie';
-        el.style.left = (this.col * this.game.gridSize) + 'px';
+        el.className = 'entity zombie zombie-' + this.config.id;
+        el.style.left = (this.col * gs) + 'px';
         el.style.top = this.y + 'px';
-        
+        el.style.width = gs + 'px';
+        el.style.height = gs + 'px';
+
         // 血条
         const bg = document.createElement('div');
         bg.className = 'hp-bar-bg';
@@ -32,32 +40,61 @@ export default class Zombie {
         this.hpFill.className = 'hp-bar-fill hp-red';
         bg.appendChild(this.hpFill);
         el.appendChild(bg);
-        
-        // 图片
-        const img = document.createElement('img');
-        img.src = 'zombie.png';
-        img.onerror = () => { img.style.display='none'; el.innerText = '🧟'; };
-        el.appendChild(img);
-        
+
+        // emoji（按类型区分）
+        const span = document.createElement('span');
+        span.className = 'zombie-emoji';
+        span.style.fontSize = (gs * 0.55) + 'px';
+        span.textContent = this.config.emoji || '🧟';
+        el.appendChild(span);
+
         this.game.elLawn.appendChild(el);
         return el;
     }
-    
+
     takeDamage(amount) {
         this.hp -= amount;
         this.hpFill.style.width = Math.max(0, (this.hp / this.maxHp) * 100) + '%';
         if (this.hp <= 0) {
             this.el.innerHTML = '<span style="font-size:40px">💥</span>';
             setTimeout(() => this.el.remove(), 200);
-            return true; // died
+            return true;
         }
         return false;
     }
-    
-    update(timestamp) {
+
+    update(timestamp, dt) {
+        // dt = deltaTime in seconds
+        const gs = this.game.gridSize;
+
+        // ---- 跳跃动画中 ----
+        if (this.isJumping) {
+            this.jumpProgress += dt / 0.4; // 0.4秒完成跳跃
+            if (this.jumpProgress >= 1) {
+                this.jumpProgress = 1;
+                this.isJumping = false;
+                this.y = this.jumpTargetY;
+                // 跳跃后变慢
+                if (this.config.gridSpeedAfterJump) {
+                    this.gridSpeed = this.config.gridSpeedAfterJump;
+                }
+                this.el.classList.remove('zombie-jumping');
+            } else {
+                // 抛物线插值
+                const t = this.jumpProgress;
+                const linearY = this.jumpStartY + (this.jumpTargetY - this.jumpStartY) * t;
+                const arc = -gs * 0.8 * Math.sin(t * Math.PI); // 向上弧线
+                this.y = linearY + arc;
+            }
+            this.el.style.top = this.y + 'px';
+            return;
+        }
+
+        // ---- 啃食中 ----
         if (this.isEating) {
             if (this.targetPlant && this.targetPlant.hp > 0) {
-                const killed = this.targetPlant.takeDamage(this.damage);
+                const dmg = this.damagePerSec * dt;
+                const killed = this.targetPlant.takeDamage(dmg);
                 if (killed) {
                     this.isEating = false;
                     this.targetPlant = null;
@@ -66,28 +103,39 @@ export default class Zombie {
                 this.isEating = false;
                 this.targetPlant = null;
             }
-        } else {
-            // 移动
-            this.y += this.speed;
-            this.el.style.top = this.y + 'px';
-            
-            // 检测碰撞植物
-            // 简单的距离检测：同列，且 y 坐标接触
-            const plantsInCol = this.game.plants.filter(p => p.col === this.col);
-            for (const p of plantsInCol) {
-                const pY = p.row * this.game.gridSize;
-                // 僵尸头部(y+60) 碰到 植物顶部(pY)
-                if (this.y + 40 > pY && this.y < pY + 20) {
-                    this.isEating = true;
-                    this.targetPlant = p;
-                    break;
+            return;
+        }
+
+        // ---- 移动 ----
+        const pxPerSec = gs / this.gridSpeed;
+        this.y += pxPerSec * dt;
+        this.el.style.top = this.y + 'px';
+
+        // ---- 碰撞植物 ----
+        const plantsInCol = this.game.plants.filter(p => p.col === this.col && p.hp > 0);
+        for (const p of plantsInCol) {
+            const pY = p.row * gs;
+            // 僵尸下沿接触植物上沿
+            if (this.y + gs * 0.6 > pY && this.y < pY + gs * 0.3) {
+                // 撑杆僵尸：第一次碰到植物时跳过
+                if (this.config.id === 'polevault' && !this.hasJumped) {
+                    this.hasJumped = true;
+                    this.isJumping = true;
+                    this.jumpProgress = 0;
+                    this.jumpStartY = this.y;
+                    this.jumpTargetY = pY + gs * 1.1; // 落在植物下方
+                    this.el.classList.add('zombie-jumping');
+                    return;
                 }
+                this.isEating = true;
+                this.targetPlant = p;
+                return;
             }
-            
-            // 游戏结束判定
-            if (this.y > this.game.height - 50) {
-                this.game.triggerGameOver('zombie');
-            }
+        }
+
+        // ---- 到达底部 → 游戏失败 ----
+        if (this.y > this.game.height - gs * 0.5) {
+            this.game.triggerGameOver('zombie');
         }
     }
 }
