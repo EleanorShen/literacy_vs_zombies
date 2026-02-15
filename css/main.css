@@ -62,28 +62,71 @@ body {
     align-items: center;
 }
 
+/* ---- 暂停遮罩 ---- */
+.pause-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 9998;
+}
+
+/* ---- 侧边栏 ---- */
 #sidebar {
-    width: 80px; /* 右侧固定宽度 */
+    width: 80px;
     background: #2c3e50;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 20px;
     border-left: 2px solid #34495e;
     z-index: 20;
+    padding: 6px 0;
 }
 
-.status-box {
-    margin-bottom: 20px;
+/* 顶部区域：结束 + 暂停 + 计时器 */
+.sidebar-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #34495e;
+}
+
+.btn-end {
+    font-size: 12px; padding: 4px 12px;
+    background: #e74c3c; border: none; border-radius: 4px; color: white;
+    cursor: pointer; width: 64px;
+}
+
+.btn-pause {
+    font-size: 16px; padding: 4px 12px;
+    background: #f39c12; border: none; border-radius: 4px; color: white;
+    cursor: pointer; width: 64px;
+}
+
+.timer-box {
+    font-size: 13px;
+    color: #aaa;
     text-align: center;
-    font-size: 18px;
+    white-space: nowrap;
+}
+
+/* 中部区域：道具卡片 */
+.sidebar-cards {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+    gap: 8px;
+    overflow-y: auto;
 }
 
 .card-slot {
     width: 60px; height: 70px;
     background: #ecf0f1;
     border-radius: 5px;
-    margin-bottom: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -92,6 +135,7 @@ body {
     border: 2px solid #bdc3c7;
     color: #333;
     position: relative;
+    flex-shrink: 0;
 }
 
 .card-slot.selected { border-color: #f1c40f; box-shadow: 0 0 10px #f1c40f; }
@@ -103,4 +147,19 @@ body {
     position: absolute;
     bottom: 2px;
     right: 2px;
+}
+
+/* 底部区域：积分 */
+.sidebar-bottom {
+    width: 100%;
+    padding-top: 8px;
+    border-top: 1px solid #34495e;
+    text-align: center;
+}
+
+.score-box {
+    font-size: 18px;
+    font-weight: bold;
+    color: #f1c40f;
+    padding: 6px 0;
 }

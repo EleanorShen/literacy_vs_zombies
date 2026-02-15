@@ -30,6 +30,11 @@
         </div>
     </div>
 
+    <!-- 暂停遮罩层 -->
+    <div id="pause-overlay" class="pause-overlay" style="display:none;">
+        <button id="btn-resume" class="primary-btn">▶ 继续游戏</button>
+    </div>
+
     <!-- 主容器：上半部分是游戏+道具，下半部分是答题 -->
     <div id="app-container">
         
@@ -43,17 +48,25 @@
 
             <!-- 右侧竖向道具栏 -->
             <div id="sidebar">
-                <div class="status-box">
-                    <div>☀️ <span id="score">0</span></div>
-                    <div style="font-size:14px; color:#aaa;">⏱️ <span id="game-time">00:00</span></div>
+                <!-- 顶部：结束 + 暂停 + 计时器 -->
+                <div class="sidebar-top">
+                    <button id="btn-end-game" class="small-btn btn-end">结束</button>
+                    <button id="btn-pause" class="small-btn btn-pause">⏸</button>
+                    <div class="timer-box">⏱️ <span id="game-time">00:00</span></div>
                 </div>
 
-                <div class="card-slot" id="card-peashooter">
-                    <div class="card-img">🌱</div> <!-- 默认用Emoji，JS加载图片 -->
-                    <div class="card-cost">100</div>
+                <!-- 中部：道具卡片 -->
+                <div class="sidebar-cards">
+                    <div class="card-slot" id="card-peashooter">
+                        <div class="card-img">🌱</div>
+                        <div class="card-cost">100</div>
+                    </div>
                 </div>
 
-                <button id="btn-end-game" class="small-btn">结束</button>
+                <!-- 底部：积分显示 -->
+                <div class="sidebar-bottom">
+                    <div class="score-box">☀️ <span id="score">0</span></div>
+                </div>
             </div>
         </div>
 

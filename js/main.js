@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // 隐藏遮罩层
             const overlay = document.getElementById('overlay-screen');
             if (overlay) overlay.style.display = 'none';
+            const pauseOverlay = document.getElementById('pause-overlay');
+            if (pauseOverlay) pauseOverlay.style.display = 'none';
 
             // 启动游戏
             game.start();

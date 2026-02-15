@@ -16,6 +16,7 @@ export default class Game {
         this.time = 0;
         this.isRunning = false;
         this.isGameOver = false;
+        this.isPaused = false;
 
         // 网格
         this.gridSize = 0;
@@ -102,12 +103,29 @@ export default class Game {
                 if (this.isRunning) this.triggerGameOver('manual');
             });
         }
+
+        // 暂停按钮
+        const pauseBtn = document.getElementById('btn-pause');
+        if (pauseBtn) {
+            pauseBtn.addEventListener('click', () => {
+                if (this.isRunning && !this.isGameOver) this.pause();
+            });
+        }
+
+        // 恢复按钮
+        const resumeBtn = document.getElementById('btn-resume');
+        if (resumeBtn) {
+            resumeBtn.addEventListener('click', () => {
+                if (this.isPaused) this.resume();
+            });
+        }
     }
 
     start() {
         console.log('Game: Started!');
         this.isRunning = true;
         this.isGameOver = false;
+        this.isPaused = false;
         this.score = 0;
         this.time = 0;
         this.plants = [];
@@ -158,9 +176,42 @@ export default class Game {
 
     stop() {
         this.isRunning = false;
+        this.isPaused = false;
         cancelAnimationFrame(this.gameLoopId);
         clearInterval(this.timerId);
         clearInterval(this.spawnTimerId);
+    }
+
+    pause() {
+        if (!this.isRunning || this.isPaused) return;
+        this.isPaused = true;
+        cancelAnimationFrame(this.gameLoopId);
+        clearInterval(this.timerId);
+        clearInterval(this.spawnTimerId);
+
+        // 显示暂停遮罩
+        const pauseOverlay = document.getElementById('pause-overlay');
+        if (pauseOverlay) pauseOverlay.style.display = 'flex';
+    }
+
+    resume() {
+        if (!this.isPaused) return;
+        this.isPaused = false;
+
+        // 隐藏暂停遮罩
+        const pauseOverlay = document.getElementById('pause-overlay');
+        if (pauseOverlay) pauseOverlay.style.display = 'none';
+
+        // 恢复游戏循环
+        this.lastTimestamp = 0;
+        this.gameLoopId = requestAnimationFrame((t) => this.loop(t));
+
+        // 恢复计时器
+        this.timerId = setInterval(() => {
+            this.time++;
+            this.ui.updateTime(this.time);
+            this._checkWave();
+        }, 1000);
     }
 
     // ---- 波次管理 ----
@@ -206,7 +257,7 @@ export default class Game {
 
     // ---- 每帧循环 ----
     loop(timestamp) {
-        if (!this.isRunning) return;
+        if (!this.isRunning || this.isPaused) return;
 
         this.update(timestamp);
         this.gameLoopId = requestAnimationFrame((t) => this.loop(t));
