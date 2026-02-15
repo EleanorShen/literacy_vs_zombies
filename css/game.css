@@ -76,6 +76,45 @@
     /* transform: rotate(-90deg); 如果素材是朝右的，需要调整 */
 }
 
+.plant-emoji {
+    font-size: 36px;
+    line-height: 1;
+    pointer-events: none;
+}
+
+/* ---- 食人花咀嚼状态 ---- */
+.chomper-chewing {
+    animation: chomperChew 1.5s ease-in-out infinite;
+}
+@keyframes chomperChew {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1) rotate(5deg); }
+}
+
+/* ---- 樱桃炸弹引信 ---- */
+.cherrybomb-fuse {
+    animation: fuseBlink 0.2s ease-in-out infinite alternate;
+}
+@keyframes fuseBlink {
+    from { filter: brightness(1); }
+    to { filter: brightness(2) saturate(2); }
+}
+
+/* ---- 樱桃炸弹爆炸 ---- */
+.cherrybomb-explode {
+    animation: explode 0.5s ease-out forwards;
+}
+@keyframes explode {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(3); opacity: 0.8; }
+    100% { transform: scale(4); opacity: 0; }
+}
+
+/* ---- 坚果墙 ---- */
+.plant-wallnut {
+    transition: transform 0.3s, opacity 0.3s;
+}
+
 #wave-message {
     position: absolute;
     top: 20%;

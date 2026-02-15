@@ -37,16 +37,20 @@ export default class Game {
         // 选中的植物卡片
         this.selectedPlant = null;
 
-        // 词库挂到 config 上供 QuizManager 使用
+        // 冷却状态 { PEASHOOTER: { ready: true, timer: null }, ... }
+        this.cooldowns = {};
+        for (const key of Object.keys(config.PLANTS)) {
+            this.cooldowns[key] = { ready: true, timer: null };
+        }
+
+        // 词库
         this.config.words = words.Hsk1Words;
 
         // 答题管理器
         this.quiz = new QuizManager(this);
 
-        // 绑定事件
         this._bindEvents();
 
-        // 响应式
         window.addEventListener('resize', () => this.resize());
         this.resize();
     }
@@ -54,7 +58,7 @@ export default class Game {
     _bindEvents() {
         // 点击草坪放置植物
         this.elLawn.addEventListener('click', (e) => {
-            if (!this.isRunning || this.isGameOver) return;
+            if (!this.isRunning || this.isGameOver || this.isPaused) return;
             if (!this.selectedPlant) return;
 
             const rect = this.elLawn.getBoundingClientRect();
@@ -66,31 +70,47 @@ export default class Game {
 
             if (col < 0 || col >= this.cols || row < 0 || row >= this.rows) return;
 
-            // 检查是否已有植物
+            // 检查是否已有植物（樱桃炸弹可以放在有植物的格子上）
             const occupied = this.plants.some(p => p.row === row && p.col === col);
-            if (occupied) return;
+            if (occupied && this.selectedPlant !== 'CHERRYBOMB') return;
 
-            // 检查积分是否足够
             const plantConfig = config.PLANTS[this.selectedPlant];
+            if (!plantConfig) return;
+
+            // 检查积分
             if (this.score < plantConfig.cost) return;
+
+            // 检查冷却
+            if (!this.cooldowns[this.selectedPlant].ready) return;
 
             // 扣分并放置
             this.addScore(-plantConfig.cost);
             const plant = new Plant(row, col, this.selectedPlant, plantConfig, this);
             this.plants.push(plant);
+
+            // 触发冷却
+            this._startCooldown(this.selectedPlant);
+
+            // 放置后取消选中
+            this._deselectAll();
         });
 
-        // 卡片选择
-        const card = document.getElementById('card-peashooter');
-        if (card) {
+        // 卡片选择（为所有卡片绑定）
+        for (const key of Object.keys(config.PLANTS)) {
+            const cardId = 'card-' + config.PLANTS[key].id;
+            const card = document.getElementById(cardId);
+            if (!card) continue;
             card.addEventListener('click', () => {
-                if (!this.isRunning) return;
-                // 切换选中状态
-                if (this.selectedPlant === 'PEASHOOTER') {
-                    this.selectedPlant = null;
-                    card.classList.remove('selected');
+                if (!this.isRunning || this.isPaused) return;
+                // 检查冷却和积分
+                if (!this.cooldowns[key].ready) return;
+                if (this.score < config.PLANTS[key].cost) return;
+
+                if (this.selectedPlant === key) {
+                    this._deselectAll();
                 } else {
-                    this.selectedPlant = 'PEASHOOTER';
+                    this._deselectAll();
+                    this.selectedPlant = key;
                     card.classList.add('selected');
                 }
             });
@@ -121,6 +141,52 @@ export default class Game {
         }
     }
 
+    _deselectAll() {
+        this.selectedPlant = null;
+        document.querySelectorAll('.card-slot.selected').forEach(c => c.classList.remove('selected'));
+    }
+
+    // ---- 冷却系统 ----
+    _startCooldown(plantKey) {
+        const cd = this.cooldowns[plantKey];
+        const plantCfg = config.PLANTS[plantKey];
+        const card = document.getElementById('card-' + plantCfg.id);
+
+        cd.ready = false;
+        if (card) {
+            card.classList.add('on-cooldown');
+            // 冷却进度条
+            const fill = card.querySelector('.cd-fill');
+            if (fill) {
+                fill.style.transition = 'none';
+                fill.style.height = '100%';
+                // 强制重排后启动动画
+                void fill.offsetHeight;
+                fill.style.transition = `height ${plantCfg.cooldown}ms linear`;
+                fill.style.height = '0%';
+            }
+        }
+
+        cd.timer = setTimeout(() => {
+            cd.ready = true;
+            if (card) card.classList.remove('on-cooldown');
+        }, plantCfg.cooldown);
+    }
+
+    _resetAllCooldowns() {
+        for (const key of Object.keys(this.cooldowns)) {
+            clearTimeout(this.cooldowns[key].timer);
+            this.cooldowns[key].ready = true;
+            const card = document.getElementById('card-' + config.PLANTS[key].id);
+            if (card) {
+                card.classList.remove('on-cooldown');
+                const fill = card.querySelector('.cd-fill');
+                if (fill) { fill.style.transition = 'none'; fill.style.height = '0%'; }
+            }
+        }
+    }
+
+    // ---- 生命周期 ----
     start() {
         console.log('Game: Started!');
         this.isRunning = true;
@@ -134,38 +200,32 @@ export default class Game {
         this.currentWaveIndex = 0;
         this.selectedPlant = null;
 
-        // 重置 UI
+        this._resetAllCooldowns();
+        this._deselectAll();
+
         this.ui.updateScore(this.score);
         this.ui.updateTime(this.time);
         this.ui.clearLawn();
 
-        // 重新添加 wave-message 元素（clearLawn 会清掉）
         const waveMsg = document.createElement('div');
         waveMsg.id = 'wave-message';
         this.elLawn.appendChild(waveMsg);
         this.ui.waveMsgEl = waveMsg;
 
-        // 解锁音频（移动端需要用户交互后才能播放）
         this.quiz.unlockAudio();
-
-        // 启动答题
         this.quiz.start();
 
-        // 给玩家初始阳光
         this.addScore(150);
 
-        // 启动游戏循环
         this.lastTimestamp = 0;
         this.gameLoopId = requestAnimationFrame((t) => this.loop(t));
 
-        // 计时器
         this.timerId = setInterval(() => {
             this.time++;
             this.ui.updateTime(this.time);
             this._checkWave();
         }, 1000);
 
-        // 第一波提示
         this.ui.showWaveMessage('🛡️ 准备防御！');
     }
 
@@ -180,6 +240,7 @@ export default class Game {
         cancelAnimationFrame(this.gameLoopId);
         clearInterval(this.timerId);
         clearInterval(this.spawnTimerId);
+        this._resetAllCooldowns();
     }
 
     pause() {
@@ -189,7 +250,6 @@ export default class Game {
         clearInterval(this.timerId);
         clearInterval(this.spawnTimerId);
 
-        // 显示暂停遮罩
         const pauseOverlay = document.getElementById('pause-overlay');
         if (pauseOverlay) pauseOverlay.style.display = 'flex';
     }
@@ -198,15 +258,12 @@ export default class Game {
         if (!this.isPaused) return;
         this.isPaused = false;
 
-        // 隐藏暂停遮罩
         const pauseOverlay = document.getElementById('pause-overlay');
         if (pauseOverlay) pauseOverlay.style.display = 'none';
 
-        // 恢复游戏循环
         this.lastTimestamp = 0;
         this.gameLoopId = requestAnimationFrame((t) => this.loop(t));
 
-        // 恢复计时器
         this.timerId = setInterval(() => {
             this.time++;
             this.ui.updateTime(this.time);
@@ -231,7 +288,7 @@ export default class Game {
     _startWaveSpawn(wave) {
         clearInterval(this.spawnTimerId);
         this.spawnTimerId = setInterval(() => {
-            if (!this.isRunning || this.isGameOver) {
+            if (!this.isRunning || this.isGameOver || this.isPaused) {
                 clearInterval(this.spawnTimerId);
                 return;
             }
@@ -243,7 +300,6 @@ export default class Game {
     }
 
     _spawnZombie(col) {
-        // 随机选择僵尸类型（根据时间增加难度）
         const types = Object.keys(config.ZOMBIES);
         let maxTypeIndex = 0;
         if (this.time > 60) maxTypeIndex = 1;
@@ -264,28 +320,15 @@ export default class Game {
     }
 
     update(timestamp) {
-        // 更新僵尸
-        for (const z of this.zombies) {
-            z.update(timestamp);
-        }
-        // 清理死亡僵尸
+        for (const z of this.zombies) z.update(timestamp);
         this.zombies = this.zombies.filter(z => z.hp > 0);
 
-        // 更新植物（射击逻辑）
-        for (const p of this.plants) {
-            p.update(timestamp);
-        }
-        // 清理死亡植物
+        for (const p of this.plants) p.update(timestamp);
         this.plants = this.plants.filter(p => p.hp > 0);
 
-        // 更新子弹
-        for (const b of this.bullets) {
-            b.update(timestamp);
-        }
-        // 清理失效子弹
+        for (const b of this.bullets) b.update(timestamp);
         this.bullets = this.bullets.filter(b => b.active);
 
-        // 碰撞检测：子弹 vs 僵尸
         this._checkBulletCollisions();
     }
 
@@ -296,24 +339,21 @@ export default class Game {
                 if (z.hp <= 0) continue;
                 if (b.col !== z.col) continue;
 
-                // 简单的 Y 轴碰撞
                 const bulletTop = b.y;
                 const zombieBottom = z.y + this.gridSize * 0.8;
                 const zombieTop = z.y;
 
                 if (bulletTop <= zombieBottom && bulletTop >= zombieTop) {
-                    const killed = z.takeDamage(b.damage);
+                    z.takeDamage(b.damage);
                     b.hit();
-                    if (killed) {
-                        this.addScore(z.config.scoreReward || 50);
-                    }
+                    // 击杀僵尸不给分
                     break;
                 }
             }
         }
     }
 
-    // ---- 公共方法（供其他模块调用）----
+    // ---- 公共方法 ----
     spawnBullet(col, x, y, plantConfig) {
         const bullet = new Bullet(col, x, y, plantConfig, this);
         this.bullets.push(bullet);
@@ -322,11 +362,15 @@ export default class Game {
     addScore(amount) {
         this.score = Math.max(0, this.score + amount);
         this.ui.updateScore(this.score);
+        this._updateAllCards();
+    }
 
-        // 更新卡片可用状态
-        const card = document.getElementById('card-peashooter');
-        if (card) {
-            if (this.score < config.PLANTS.PEASHOOTER.cost) {
+    _updateAllCards() {
+        for (const key of Object.keys(config.PLANTS)) {
+            const plantCfg = config.PLANTS[key];
+            const card = document.getElementById('card-' + plantCfg.id);
+            if (!card) continue;
+            if (this.score < plantCfg.cost || !this.cooldowns[key].ready) {
                 card.classList.add('disabled');
             } else {
                 card.classList.remove('disabled');
