@@ -17,7 +17,7 @@ export default {
     PLANTS: {
         PEASHOOTER: {
             id: 'peashooter', name: '豌豆射手', emoji: '🌱',
-            cost: 100, cooldown: 7000, hp: 300,
+            cost: 100, cooldown: 3000, hp: 300,
             damage: 20, bulletCount: 1, attackSpeed: 1400,
             range: 9, bulletSpeed: 300
         },
