@@ -2,13 +2,14 @@ export default class Zombie {
     constructor(row, col, config, game) {
         this.game = game;
         this.col = col;
-        this.y = row * game.gridSize;   // 像素坐标（从 -gridSize 开始）
+        this.y = row * game.gridSize;
         this.config = config;
         this.id = Math.random().toString(36).substr(2, 9);
 
         this.hp = config.hp;
         this.maxHp = config.hp;
-        this.gridSpeed = config.gridSpeed;       // 秒/格
+        this.baseGridSpeed = config.gridSpeed;
+        this.gridSpeed = config.gridSpeed;
         this.damagePerSec = config.damagePerSec;
 
         this.isEating = false;
@@ -20,6 +21,11 @@ export default class Zombie {
         this.jumpProgress = 0;
         this.jumpStartY = 0;
         this.jumpTargetY = 0;
+
+        // 减速状态
+        this.isSlowed = false;
+        this.slowEndTime = 0;
+        this.slowFactor = 1;
 
         this.el = this._createVisual();
     }
@@ -33,7 +39,6 @@ export default class Zombie {
         el.style.width = gs + 'px';
         el.style.height = gs + 'px';
 
-        // 血条
         const bg = document.createElement('div');
         bg.className = 'hp-bar-bg';
         this.hpFill = document.createElement('div');
@@ -41,7 +46,6 @@ export default class Zombie {
         bg.appendChild(this.hpFill);
         el.appendChild(bg);
 
-        // emoji（按类型区分）
         const span = document.createElement('span');
         span.className = 'zombie-emoji';
         span.style.fontSize = (gs * 0.55) + 'px';
@@ -50,6 +54,13 @@ export default class Zombie {
 
         this.game.elLawn.appendChild(el);
         return el;
+    }
+
+    applySlow(factor, duration) {
+        this.isSlowed = true;
+        this.slowFactor = factor;
+        this.slowEndTime = performance.now() + duration;
+        this.el.classList.add('zombie-slowed');
     }
 
     takeDamage(amount) {
@@ -64,26 +75,34 @@ export default class Zombie {
     }
 
     update(timestamp, dt) {
-        // dt = deltaTime in seconds
         const gs = this.game.gridSize;
+
+        // 检查减速是否过期
+        if (this.isSlowed && timestamp >= this.slowEndTime) {
+            this.isSlowed = false;
+            this.slowFactor = 1;
+            this.el.classList.remove('zombie-slowed');
+        }
+
+        // 当前实际速度倍率
+        const speedMult = this.isSlowed ? this.slowFactor : 1;
 
         // ---- 跳跃动画中 ----
         if (this.isJumping) {
-            this.jumpProgress += dt / 0.4; // 0.4秒完成跳跃
+            this.jumpProgress += dt / 0.4;
             if (this.jumpProgress >= 1) {
                 this.jumpProgress = 1;
                 this.isJumping = false;
                 this.y = this.jumpTargetY;
-                // 跳跃后变慢
                 if (this.config.gridSpeedAfterJump) {
+                    this.baseGridSpeed = this.config.gridSpeedAfterJump;
                     this.gridSpeed = this.config.gridSpeedAfterJump;
                 }
                 this.el.classList.remove('zombie-jumping');
             } else {
-                // 抛物线插值
                 const t = this.jumpProgress;
                 const linearY = this.jumpStartY + (this.jumpTargetY - this.jumpStartY) * t;
-                const arc = -gs * 0.8 * Math.sin(t * Math.PI); // 向上弧线
+                const arc = -gs * 0.8 * Math.sin(t * Math.PI);
                 this.y = linearY + arc;
             }
             this.el.style.top = this.y + 'px';
@@ -93,7 +112,7 @@ export default class Zombie {
         // ---- 啃食中 ----
         if (this.isEating) {
             if (this.targetPlant && this.targetPlant.hp > 0) {
-                const dmg = this.damagePerSec * dt;
+                const dmg = this.damagePerSec * dt * speedMult;
                 const killed = this.targetPlant.takeDamage(dmg);
                 if (killed) {
                     this.isEating = false;
@@ -107,7 +126,7 @@ export default class Zombie {
         }
 
         // ---- 移动 ----
-        const pxPerSec = gs / this.gridSpeed;
+        const pxPerSec = (gs / this.gridSpeed) * speedMult;
         this.y += pxPerSec * dt;
         this.el.style.top = this.y + 'px';
 
@@ -115,15 +134,19 @@ export default class Zombie {
         const plantsInCol = this.game.plants.filter(p => p.col === this.col && p.hp > 0);
         for (const p of plantsInCol) {
             const pY = p.row * gs;
-            // 僵尸下沿接触植物上沿
             if (this.y + gs * 0.6 > pY && this.y < pY + gs * 0.3) {
+                // 土豆地雷：已武装则引爆
+                if (p.type === 'POTATOMINE' && p.isArmed) {
+                    p.explode(this);
+                    return;
+                }
                 // 撑杆僵尸：第一次碰到植物时跳过
                 if (this.config.id === 'polevault' && !this.hasJumped) {
                     this.hasJumped = true;
                     this.isJumping = true;
                     this.jumpProgress = 0;
                     this.jumpStartY = this.y;
-                    this.jumpTargetY = pY + gs * 1.1; // 落在植物下方
+                    this.jumpTargetY = pY + gs * 1.1;
                     this.el.classList.add('zombie-jumping');
                     return;
                 }

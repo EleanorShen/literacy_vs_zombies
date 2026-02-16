@@ -10,16 +10,20 @@
 </head>
 <body>
 
-    <!-- 游戏启动/结束遮罩层 -->
+    <!-- 启动/结束遮罩 -->
     <div id="overlay-screen" class="overlay-screen">
         <div id="start-panel">
-            <h1>识字大战僵尸 (竖版)</h1>
+            <h1>识字大战僵尸</h1>
             <p>🧟 抵御上方来袭的僵尸 | 📝 答题获得阳光</p>
             <div class="mode-selection">
                 <label><input type="checkbox" id="mode-listen" checked> 👂 听音辨字</label>
                 <label><input type="checkbox" id="mode-read" checked> 👁️ 看字选音</label>
             </div>
-            <button id="btn-start" class="primary-btn">开始游戏</button>
+            <!-- 关卡选择 -->
+            <div id="level-select">
+                <p style="margin:12px 0 6px;font-size:16px;">选择关卡：</p>
+                <div id="level-buttons"></div>
+            </div>
         </div>
 
         <div id="game-over-panel" style="display:none;">
@@ -27,104 +31,73 @@
             <div id="go-stats"></div>
             <div class="review-box" id="go-review-list"></div>
             <button id="btn-restart" class="primary-btn">重新挑战</button>
+            <button id="btn-back-menu" class="primary-btn" style="background:#3498db;margin-left:10px;">返回菜单</button>
         </div>
     </div>
 
-    <!-- 暂停遮罩层 -->
+    <!-- 道具选择弹窗（超过4种时弹出） -->
+    <div id="card-pick-overlay" class="overlay-screen" style="display:none;">
+        <div id="card-pick-panel">
+            <h2>选择 4 种道具</h2>
+            <div id="card-pick-grid"></div>
+            <p id="card-pick-hint" style="color:#f39c12;margin-top:8px;">还需选择 <span id="pick-remaining">4</span> 种</p>
+            <button id="btn-pick-confirm" class="primary-btn" disabled>确认</button>
+        </div>
+    </div>
+
+    <!-- 暂停遮罩 -->
     <div id="pause-overlay" class="pause-overlay" style="display:none;">
         <button id="btn-resume" class="primary-btn">▶ 继续游戏</button>
     </div>
 
-    <!-- 主容器：上半部分是游戏+道具，下半部分是答题 -->
+    <!-- 主容器 -->
     <div id="app-container">
-        
-        <!-- 上半部分：游戏区 + 右侧道具栏 -->
+        <!-- 上半：游戏区 + 侧边栏 -->
         <div id="game-section">
             <div id="game-wrapper">
                 <div id="wave-message">💀 僵尸来袭！</div>
-                <!-- 5列 x 9行 的竖向网格 -->
                 <div id="lawn"></div>
             </div>
 
-            <!-- 右侧竖向道具栏 -->
+            <!-- 侧边栏：顶部按钮 → 中间弹性空白 → 卡片(从下往上) → 积分 -->
             <div id="sidebar">
-                <!-- 顶部：结束 + 暂停 + 计时器 -->
                 <div class="sidebar-top">
                     <button id="btn-end-game" class="small-btn btn-end">结束</button>
                     <button id="btn-pause" class="small-btn btn-pause">⏸</button>
                     <div class="timer-box">⏱️ <span id="game-time">00:00</span></div>
+                    <div id="level-label" style="font-size:11px;color:#aaa;">第1关</div>
                 </div>
 
-                <!-- 中部：道具卡片 -->
-                <div class="sidebar-cards">
-                    <div class="card-slot" id="card-peashooter">
-                        <div class="cd-fill"></div>
-                        <div class="card-img">🌱</div>
-                        <div class="card-name">豌豆</div>
-                        <div class="card-cost">100</div>
-                    </div>
-                    <div class="card-slot" id="card-repeater">
-                        <div class="cd-fill"></div>
-                        <div class="card-img">🌿</div>
-                        <div class="card-name">双发</div>
-                        <div class="card-cost">150</div>
-                    </div>
-                    <div class="card-slot" id="card-gatlingpea">
-                        <div class="cd-fill"></div>
-                        <div class="card-img">🔫</div>
-                        <div class="card-name">加特林</div>
-                        <div class="card-cost">250</div>
-                    </div>
-                    <div class="card-slot" id="card-chomper">
-                        <div class="cd-fill"></div>
-                        <div class="card-img">👅</div>
-                        <div class="card-name">食人花</div>
-                        <div class="card-cost">200</div>
-                    </div>
-                    <div class="card-slot" id="card-cherrybomb">
-                        <div class="cd-fill"></div>
-                        <div class="card-img">🍒</div>
-                        <div class="card-name">炸弹</div>
-                        <div class="card-cost">150</div>
-                    </div>
-                    <div class="card-slot" id="card-wallnut">
-                        <div class="cd-fill"></div>
-                        <div class="card-img">🥜</div>
-                        <div class="card-name">坚果</div>
-                        <div class="card-cost">50</div>
-                    </div>
-                </div>
+                <!-- 弹性空白把卡片推到底部 -->
+                <div class="sidebar-spacer"></div>
 
-                <!-- 底部：积分显示 -->
+                <!-- 道具卡片（JS动态生成，最多4个） -->
+                <div class="sidebar-cards" id="sidebar-cards"></div>
+
+                <!-- 积分 -->
                 <div class="sidebar-bottom">
                     <div class="score-box">☀️ <span id="score">0</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- 下半部分：答题区 (高度固定或自适应) -->
+        <!-- 下半：答题区 -->
         <div id="quiz-panel">
             <div id="feedback-overlay"><div id="feedback-mark">❌</div></div>
-            
             <div class="quiz-header">
                 <span id="quiz-mode-label">模式</span>
                 <span id="feedback-text"></span>
             </div>
-
             <div class="quiz-main">
                 <div class="question-box">
                     <div id="main-display">?</div>
                     <div id="main-speaker" class="speaker-btn">🔊</div>
                 </div>
-                
-                <div id="options-container" class="options-grid">
-                    <!-- 选项由 JS 生成 -->
-                </div>
+                <div id="options-container" class="options-grid"></div>
             </div>
         </div>
     </div>
 
-    <!-- 模块化入口 -->
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -19,6 +19,11 @@ export default class Plant {
         this.fuseStartTime = 0;
         this.hasExploded = false;
 
+        // 土豆地雷状态
+        this.isArmed = false;
+        this.plantTime = 0;
+        this.hasMineExploded = false;
+
         this.el = this._createVisual();
     }
 
@@ -31,8 +36,8 @@ export default class Plant {
         el.style.width = gs + 'px';
         el.style.height = gs + 'px';
 
-        // 血条（樱桃炸弹不需要）
-        if (this.type !== 'CHERRYBOMB') {
+        // 血条（樱桃炸弹和土豆地雷不需要）
+        if (this.type !== 'CHERRYBOMB' && this.type !== 'POTATOMINE') {
             const bg = document.createElement('div');
             bg.className = 'hp-bar-bg';
             this.hpFill = document.createElement('div');
@@ -45,6 +50,11 @@ export default class Plant {
         span.className = 'plant-emoji';
         span.textContent = this.config.emoji || '🌱';
         el.appendChild(span);
+
+        // 土豆地雷：初始半透明表示未武装
+        if (this.type === 'POTATOMINE') {
+            el.classList.add('mine-unarmed');
+        }
 
         this.game.elLawn.appendChild(el);
         return el;
@@ -82,18 +92,24 @@ export default class Plant {
             case 'GATLINGPEA':
                 this._updateShooter(timestamp);
                 break;
+            case 'SNOWPEA':
+                this._updateShooter(timestamp);
+                break;
             case 'CHOMPER':
                 this._updateChomper(timestamp);
                 break;
             case 'CHERRYBOMB':
                 this._updateCherryBomb(timestamp);
                 break;
+            case 'POTATOMINE':
+                this._updatePotatoMine(timestamp);
+                break;
             case 'WALLNUT':
                 break;
         }
     }
 
-    // ---- 射手类 ----
+    // ---- 射手类（含寒冰射手） ----
     _updateShooter(timestamp) {
         const target = this.game.zombies.find(z =>
             z.col === this.col &&
@@ -187,6 +203,52 @@ export default class Plant {
         }
 
         this.el.classList.remove('cherrybomb-fuse');
+        this.el.classList.add('cherrybomb-explode');
+        const emoji = this.el.querySelector('.plant-emoji');
+        if (emoji) emoji.textContent = '💥';
+
+        setTimeout(() => {
+            this.hp = 0;
+            this.el.remove();
+        }, 500);
+    }
+
+    // ---- 土豆地雷 ----
+    _updatePotatoMine(timestamp) {
+        if (this.hasMineExploded) return;
+
+        // 武装计时
+        if (this.plantTime === 0) {
+            this.plantTime = timestamp;
+        }
+
+        if (!this.isArmed && timestamp - this.plantTime >= this.config.armTime) {
+            this.isArmed = true;
+            this.el.classList.remove('mine-unarmed');
+            this.el.classList.add('mine-armed');
+            const emoji = this.el.querySelector('.plant-emoji');
+            if (emoji) emoji.textContent = '💣';
+        }
+    }
+
+    // 土豆地雷引爆（由 Zombie 碰撞触发）
+    explode(triggerZombie) {
+        if (this.hasMineExploded || !this.isArmed) return;
+        this.hasMineExploded = true;
+
+        const gs = this.game.gridSize;
+        const damage = this.config.explosionDamage;
+
+        // 对同格所有僵尸造成伤害
+        for (const z of this.game.zombies) {
+            if (z.hp <= 0) continue;
+            if (z.col !== this.col) continue;
+            const zRow = Math.round(z.y / gs);
+            if (zRow === this.row || zRow === this.row - 1 || zRow === this.row + 1) {
+                z.takeDamage(damage);
+            }
+        }
+
         this.el.classList.add('cherrybomb-explode');
         const emoji = this.el.querySelector('.plant-emoji');
         if (emoji) emoji.textContent = '💥';
