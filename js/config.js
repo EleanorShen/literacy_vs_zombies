@@ -265,7 +265,7 @@ export default {
             reward: null
         },
         {
-            id: 10, name: 'Level 1-10',
+            id: 10, name: 'Level 1-10 陨石洞●',
             availablePlants: ['PEASHOOTER', 'CHERRYBOMB', 'WALLNUT', 'POTATOMINE', 'SNOWPEA', 'CHOMPER', 'REPEATER'],
             needPick: true,
             maxSlots: 4,
