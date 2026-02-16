@@ -197,6 +197,14 @@ export default class Game {
         document.getElementById('card-pick-overlay').style.display = 'none';
         document.getElementById('pause-overlay').style.display = 'none';
 
+        // 读取题型 checkbox 状态
+        const listenChecked = document.getElementById('mode-listen')?.checked;
+        const readChecked = document.getElementById('mode-read')?.checked;
+        const modes = [];
+        if (listenChecked) modes.push('LISTEN');
+        if (readChecked) modes.push('READ');
+        this.quiz.setModes(modes.length > 0 ? modes : ['LISTEN', 'READ']);
+
         this.reset();
         this.score = this.currentLevel.startSun;
         this.ui.updateScore(this.score);
@@ -442,8 +450,8 @@ export default class Game {
             this.ui.showWaveMessage(`💀 第 ${waveIdx}/${lv.FlagNum} 波`);
         }
 
-        // 陨石坑机制：波次>2 且关卡开启
-        if (lv.hasCraters && waveIdx > 2) {
+        // 陨石坑机制：波次>=3 且关卡开启
+        if (lv.hasCraters && waveIdx >= 3) {
             this._spawnCrater();
         }
 
@@ -497,47 +505,46 @@ export default class Game {
 
     // ============ 陨石坑机制 ============
     _spawnCrater() {
-        // 随机选一个格子（避开已有坑洞）
-        const maxAttempts = 20;
-        for (let i = 0; i < maxAttempts; i++) {
-            const row = Math.floor(Math.random() * this.rows);
-            const col = Math.floor(Math.random() * this.cols);
-
-            // 不在已有坑洞位置
-            if (this.craters.some(c => c.row === row && c.col === col)) continue;
-
-            // 摧毁该格植物
-            const plantIdx = this.plants.findIndex(p => p.col === col && p.row === row && p.hp > 0);
-            if (plantIdx !== -1) {
-                const plant = this.plants[plantIdx];
-                plant.hp = 0;
-                plant.el.remove();
-                this.plants.splice(plantIdx, 1);
-            }
-
-            // 创建坑洞视觉
-            const gs = this.gridSize;
-            const el = document.createElement('div');
-            el.className = 'entity crater';
-            el.style.left = (col * gs) + 'px';
-            el.style.top = (row * gs) + 'px';
-            el.style.width = gs + 'px';
-            el.style.height = gs + 'px';
-            el.style.display = 'flex';
-            el.style.alignItems = 'center';
-            el.style.justifyContent = 'center';
-            el.style.fontSize = (gs * 0.5) + 'px';
-            el.style.pointerEvents = 'none';
-            el.style.zIndex = '1';
-            el.textContent = '🕳️';
-            this.elLawn.appendChild(el);
-
-            this.craters.push({ row, col, el });
-
-            // 显示提示
-            this.ui.showWaveMessage('☄️ 陨石坑出现！');
-            break;
+        // 1. 移除旧坑（全场只保留一个）
+        for (const c of this.craters) {
+            c.el.remove();
         }
+        this.craters = [];
+
+        // 2. 随机选一个新格子
+        const row = Math.floor(Math.random() * this.rows);
+        const col = Math.floor(Math.random() * this.cols);
+
+        // 3. 摧毁该格植物
+        const plantIdx = this.plants.findIndex(p => p.col === col && p.row === row && p.hp > 0);
+        if (plantIdx !== -1) {
+            const plant = this.plants[plantIdx];
+            plant.hp = 0;
+            plant.el.remove();
+            this.plants.splice(plantIdx, 1);
+        }
+
+        // 4. 创建坑洞视觉
+        const gs = this.gridSize;
+        const el = document.createElement('div');
+        el.className = 'entity crater';
+        el.style.left = (col * gs) + 'px';
+        el.style.top = (row * gs) + 'px';
+        el.style.width = gs + 'px';
+        el.style.height = gs + 'px';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.fontSize = (gs * 0.5) + 'px';
+        el.style.pointerEvents = 'none';
+        el.style.zIndex = '1';
+        el.textContent = '🕳️';
+        this.elLawn.appendChild(el);
+
+        this.craters.push({ row, col, el });
+
+        // 5. 显示提示
+        this.ui.showWaveMessage('☄️ 陨石坑出现！');
     }
 
     // ============ 游戏主循环 ============

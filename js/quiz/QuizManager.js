@@ -13,6 +13,7 @@ export default class QuizManager {
         this.elFeedbackOverlay = document.getElementById('feedback-overlay');
         
         this.synth = window.speechSynthesis;
+        this.modes = ['LISTEN', 'READ']; // 默认两种都有
         
         // Bind events
         if (this.elSpeaker) {
@@ -20,6 +21,10 @@ export default class QuizManager {
         }
     }
     
+    setModes(modes) {
+        this.modes = modes;
+    }
+
     start() {
         this.generateQuestion();
     }
@@ -36,7 +41,7 @@ export default class QuizManager {
         if (this.elFeedback) this.elFeedback.innerText = '';
         if (this.elOptions) this.elOptions.innerHTML = '';
         
-        const mode = Math.random() > 0.5 ? 'LISTEN' : 'READ';
+        const mode = this.modes[Math.floor(Math.random() * this.modes.length)];
         const words = this.config.words; // 假设传入了词库
         const target = words[Math.floor(Math.random() * words.length)];
         

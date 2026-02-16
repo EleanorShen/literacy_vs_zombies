@@ -159,7 +159,7 @@ export default {
             reward: { emoji: '🔧', name: '铲子', unlockShovel: true }
         },
         {
-            id: 5, name: '1-5 Special: Meteor Crater',
+            id: 5, name: '1-5 陨石洞●',
             availablePlants: ['PEASHOOTER', 'CHERRYBOMB', 'WALLNUT'],
             needPick: false,
             maxSlots: 3,
