@@ -197,6 +197,9 @@ export default class Game {
         document.getElementById('card-pick-overlay').style.display = 'none';
         document.getElementById('pause-overlay').style.display = 'none';
 
+        // 在用户手势上下文中解锁移动端语音
+        this.quiz.unlockAudio();
+
         // 读取题型 checkbox 状态
         const listenChecked = document.getElementById('mode-listen')?.checked;
         const readChecked = document.getElementById('mode-read')?.checked;

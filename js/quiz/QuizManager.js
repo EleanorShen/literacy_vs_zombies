@@ -14,11 +14,27 @@ export default class QuizManager {
         
         this.synth = window.speechSynthesis;
         this.modes = ['LISTEN', 'READ']; // 默认两种都有
+        this.voicesReady = false;
+        this.audioUnlocked = false;
+        
+        // 预加载语音列表（移动端需要等 voiceschanged 事件）
+        this._initVoices();
         
         // Bind events
         if (this.elSpeaker) {
             this.elSpeaker.addEventListener('click', () => this.speakCurrent());
         }
+    }
+    
+    _initVoices() {
+        if (!this.synth) return;
+        const voices = this.synth.getVoices();
+        if (voices.length > 0) {
+            this.voicesReady = true;
+        }
+        this.synth.addEventListener('voiceschanged', () => {
+            this.voicesReady = true;
+        });
     }
     
     setModes(modes) {
@@ -29,10 +45,17 @@ export default class QuizManager {
         this.generateQuestion();
     }
     
+    /**
+     * 在用户手势（click/touch）中调用，解锁移动端语音权限
+     */
     unlockAudio() {
-        if (!this.synth) return;
-        const u = new SpeechSynthesisUtterance("");
+        if (!this.synth || this.audioUnlocked) return;
+        // 用一个极短的静音utterance来解锁
+        const u = new SpeechSynthesisUtterance('');
+        u.volume = 0;
+        u.lang = 'zh-CN';
         this.synth.speak(u);
+        this.audioUnlocked = true;
     }
 
     generateQuestion() {
@@ -58,7 +81,14 @@ export default class QuizManager {
         this.render();
         
         if (mode === 'LISTEN') {
-            setTimeout(() => this.speak(target.char), 500);
+            // 移动端：自动发音可能因缺少用户手势而静默失败
+            // 先尝试自动播放，失败时用户可点击喇叭按钮
+            setTimeout(() => this.speak(target.char), 300);
+            // 喇叭按钮闪烁提示用户可点击
+            if (this.elSpeaker) {
+                this.elSpeaker.classList.add('speaker-hint');
+                setTimeout(() => this.elSpeaker.classList.remove('speaker-hint'), 2000);
+            }
         }
     }
     
@@ -117,10 +147,38 @@ export default class QuizManager {
     
     speak(text) {
         if (!this.synth) return;
+        
+        // 关键修复：Android Chrome 上 cancel() 紧接 speak() 会导致静默失败
+        // 需要先 cancel，等一帧再 speak
         this.synth.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'zh-CN';
-        this.synth.speak(u);
+        
+        const doSpeak = () => {
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'zh-CN';
+            u.rate = 0.9;
+            
+            // 尝试选择中文语音
+            const voices = this.synth.getVoices();
+            const zhVoice = voices.find(v => v.lang.startsWith('zh'));
+            if (zhVoice) u.voice = zhVoice;
+            
+            u.onerror = (e) => {
+                console.warn('TTS error:', e.error);
+            };
+            
+            this.synth.speak(u);
+            
+            // Android Chrome 防卡死：speak 后立即 resume
+            // 某些版本会进入 paused 状态
+            setTimeout(() => {
+                if (this.synth.paused) {
+                    this.synth.resume();
+                }
+            }, 100);
+        };
+        
+        // cancel() 后延迟一帧再 speak，避免队列卡死
+        setTimeout(doSpeak, 50);
     }
     
     speakCurrent() {
