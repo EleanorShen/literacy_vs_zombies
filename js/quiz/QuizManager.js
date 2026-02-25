@@ -17,6 +17,11 @@ export default class QuizManager {
         this.voicesReady = false;
         this.audioUnlocked = false;
         
+        // TTS 回退机制
+        this.ttsMode = 'native';   // 'native' = speechSynthesis, 'online' = 有道TTS
+        this.ttsTestDone = false;   // 是否已完成 native TTS 可用性检测
+        this._audio = null;         // 在线TTS用的 Audio 元素（延迟创建）
+        
         // 预加载语音列表（移动端需要等 voiceschanged 事件）
         this._initVoices();
         
@@ -49,12 +54,23 @@ export default class QuizManager {
      * 在用户手势（click/touch）中调用，解锁移动端语音权限
      */
     unlockAudio() {
-        if (!this.synth || this.audioUnlocked) return;
-        // 用一个极短的静音utterance来解锁
-        const u = new SpeechSynthesisUtterance('');
-        u.volume = 0;
-        u.lang = 'zh-CN';
-        this.synth.speak(u);
+        if (this.audioUnlocked) return;
+        
+        // 1. 解锁 speechSynthesis
+        if (this.synth) {
+            const u = new SpeechSynthesisUtterance('');
+            u.volume = 0;
+            u.lang = 'zh-CN';
+            this.synth.speak(u);
+        }
+        
+        // 2. 预创建并解锁 Audio 元素（移动端必须在用户手势中创建）
+        this._audio = new Audio();
+        this._audio.volume = 1;
+        // 用一个极短的静音 data URI 解锁 Audio 播放权限
+        this._audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+        this._audio.play().catch(() => {});
+        
         this.audioUnlocked = true;
     }
 
@@ -146,10 +162,18 @@ export default class QuizManager {
     }
     
     speak(text) {
-        if (!this.synth) return;
+        if (this.ttsMode === 'online') {
+            this._speakOnline(text);
+            return;
+        }
         
-        // 关键修复：Android Chrome 上 cancel() 紧接 speak() 会导致静默失败
-        // 需要先 cancel，等一帧再 speak
+        if (!this.synth) {
+            // speechSynthesis API 完全不存在，直接用在线方案
+            this.ttsMode = 'online';
+            this._speakOnline(text);
+            return;
+        }
+        
         this.synth.cancel();
         
         const doSpeak = () => {
@@ -157,28 +181,58 @@ export default class QuizManager {
             u.lang = 'zh-CN';
             u.rate = 0.9;
             
-            // 尝试选择中文语音
             const voices = this.synth.getVoices();
             const zhVoice = voices.find(v => v.lang.startsWith('zh'));
             if (zhVoice) u.voice = zhVoice;
             
-            u.onerror = (e) => {
-                console.warn('TTS error:', e.error);
-            };
-            
-            this.synth.speak(u);
-            
-            // Android Chrome 防卡死：speak 后立即 resume
-            // 某些版本会进入 paused 状态
-            setTimeout(() => {
-                if (this.synth.paused) {
-                    this.synth.resume();
-                }
-            }, 100);
+            // 首次发音时检测 native TTS 是否真正能工作
+            if (!this.ttsTestDone) {
+                this.ttsTestDone = true;
+                let started = false;
+                
+                u.onstart = () => { started = true; };
+                u.onerror = () => {
+                    console.warn('TTS native failed, switching to online');
+                    this.ttsMode = 'online';
+                    this._speakOnline(text);
+                };
+                
+                this.synth.speak(u);
+                
+                // 800ms 内 onstart 没触发 → native TTS 不可用
+                setTimeout(() => {
+                    if (!started) {
+                        console.warn('TTS native silent, switching to online');
+                        this.synth.cancel();
+                        this.ttsMode = 'online';
+                        this._speakOnline(text);
+                    }
+                }, 800);
+            } else {
+                // 已确认 native 可用，正常播放
+                u.onerror = (e) => console.warn('TTS error:', e.error);
+                this.synth.speak(u);
+                setTimeout(() => {
+                    if (this.synth.paused) this.synth.resume();
+                }, 100);
+            }
         };
         
-        // cancel() 后延迟一帧再 speak，避免队列卡死
         setTimeout(doSpeak, 50);
+    }
+    
+    /**
+     * 在线 TTS 回退方案：使用有道词典发音接口
+     */
+    _speakOnline(text) {
+        if (!this._audio) {
+            this._audio = new Audio();
+        }
+        const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=1`;
+        this._audio.src = url;
+        this._audio.play().catch(err => {
+            console.warn('Online TTS failed:', err);
+        });
     }
     
     speakCurrent() {
