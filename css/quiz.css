@@ -72,3 +72,13 @@
     padding: 5px;
     margin-top: 5px;
 }
+
+/* 移动端喇叭闪烁提示：提醒用户点击发音 */
+.speaker-hint {
+    animation: speaker-pulse 0.5s ease-in-out 3;
+}
+
+@keyframes speaker-pulse {
+    0%, 100% { transform: scale(1); background: #f1c40f; }
+    50% { transform: scale(1.3); background: #e74c3c; }
+}
