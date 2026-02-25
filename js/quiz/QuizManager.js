@@ -12,34 +12,14 @@ export default class QuizManager {
         this.elFeedback = document.getElementById('feedback-text');
         this.elFeedbackOverlay = document.getElementById('feedback-overlay');
         
-        this.synth = window.speechSynthesis;
         this.modes = ['LISTEN', 'READ']; // 默认两种都有
-        this.voicesReady = false;
         this.audioUnlocked = false;
-        
-        // TTS 回退机制
-        this.ttsMode = 'native';   // 'native' = speechSynthesis, 'online' = 有道TTS
-        this.ttsTestDone = false;   // 是否已完成 native TTS 可用性检测
-        this._audio = null;         // 在线TTS用的 Audio 元素（延迟创建）
-        
-        // 预加载语音列表（移动端需要等 voiceschanged 事件）
-        this._initVoices();
+        this._currentAudio = null;  // 当前正在播放的 Audio 对象
         
         // Bind events
         if (this.elSpeaker) {
             this.elSpeaker.addEventListener('click', () => this.speakCurrent());
         }
-    }
-    
-    _initVoices() {
-        if (!this.synth) return;
-        const voices = this.synth.getVoices();
-        if (voices.length > 0) {
-            this.voicesReady = true;
-        }
-        this.synth.addEventListener('voiceschanged', () => {
-            this.voicesReady = true;
-        });
     }
     
     setModes(modes) {
@@ -51,25 +31,14 @@ export default class QuizManager {
     }
     
     /**
-     * 在用户手势（click/touch）中调用，解锁移动端语音权限
+     * 在用户手势（click/touch）中调用，解锁移动端 Audio 播放权限
      */
     unlockAudio() {
         if (this.audioUnlocked) return;
         
-        // 1. 解锁 speechSynthesis
-        if (this.synth) {
-            const u = new SpeechSynthesisUtterance('');
-            u.volume = 0;
-            u.lang = 'zh-CN';
-            this.synth.speak(u);
-        }
-        
-        // 2. 预创建并解锁 Audio 元素（移动端必须在用户手势中创建）
-        this._audio = new Audio();
-        this._audio.volume = 1;
-        // 用一个极短的静音 data URI 解锁 Audio 播放权限
-        this._audio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
-        this._audio.play().catch(() => {});
+        // 用静音 data URI 解锁 Audio 播放权限（必须在用户手势中）
+        const silentAudio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=');
+        silentAudio.play().catch(() => {});
         
         this.audioUnlocked = true;
     }
@@ -97,14 +66,8 @@ export default class QuizManager {
         this.render();
         
         if (mode === 'LISTEN') {
-            // 移动端：自动发音可能因缺少用户手势而静默失败
-            // 先尝试自动播放，失败时用户可点击喇叭按钮
+            // 尝试自动发音，如果被移动端阻止会自动闪烁喇叭提示
             setTimeout(() => this.speak(target.char), 300);
-            // 喇叭按钮闪烁提示用户可点击
-            if (this.elSpeaker) {
-                this.elSpeaker.classList.add('speaker-hint');
-                setTimeout(() => this.elSpeaker.classList.remove('speaker-hint'), 2000);
-            }
         }
     }
     
@@ -162,80 +125,49 @@ export default class QuizManager {
     }
     
     speak(text) {
-        if (this.ttsMode === 'online') {
-            this._speakOnline(text);
-            return;
+        // 停止上一次播放
+        if (this._currentAudio) {
+            this._currentAudio.pause();
+            this._currentAudio = null;
         }
         
-        if (!this.synth) {
-            // speechSynthesis API 完全不存在，直接用在线方案
-            this.ttsMode = 'online';
-            this._speakOnline(text);
-            return;
+        const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=1`;
+        const audio = new Audio(url);
+        this._currentAudio = audio;
+        
+        const playPromise = audio.play();
+        if (playPromise) {
+            playPromise.catch(() => {
+                // 自动播放被阻止（非用户手势上下文），闪烁喇叭提示用户点击
+                this._showSpeakerHint();
+            });
         }
-        
-        this.synth.cancel();
-        
-        const doSpeak = () => {
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'zh-CN';
-            u.rate = 0.9;
-            
-            const voices = this.synth.getVoices();
-            const zhVoice = voices.find(v => v.lang.startsWith('zh'));
-            if (zhVoice) u.voice = zhVoice;
-            
-            // 首次发音时检测 native TTS 是否真正能工作
-            if (!this.ttsTestDone) {
-                this.ttsTestDone = true;
-                let started = false;
-                
-                u.onstart = () => { started = true; };
-                u.onerror = () => {
-                    console.warn('TTS native failed, switching to online');
-                    this.ttsMode = 'online';
-                    this._speakOnline(text);
-                };
-                
-                this.synth.speak(u);
-                
-                // 800ms 内 onstart 没触发 → native TTS 不可用
-                setTimeout(() => {
-                    if (!started) {
-                        console.warn('TTS native silent, switching to online');
-                        this.synth.cancel();
-                        this.ttsMode = 'online';
-                        this._speakOnline(text);
-                    }
-                }, 800);
-            } else {
-                // 已确认 native 可用，正常播放
-                u.onerror = (e) => console.warn('TTS error:', e.error);
-                this.synth.speak(u);
-                setTimeout(() => {
-                    if (this.synth.paused) this.synth.resume();
-                }, 100);
-            }
-        };
-        
-        setTimeout(doSpeak, 50);
     }
     
     /**
-     * 在线 TTS 回退方案：使用有道词典发音接口
+     * 闪烁喇叭按钮，提示用户手动点击发音
      */
-    _speakOnline(text) {
-        if (!this._audio) {
-            this._audio = new Audio();
+    _showSpeakerHint() {
+        if (this.elSpeaker) {
+            this.elSpeaker.classList.add('speaker-hint');
+            setTimeout(() => this.elSpeaker.classList.remove('speaker-hint'), 2000);
         }
-        const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=1`;
-        this._audio.src = url;
-        this._audio.play().catch(err => {
-            console.warn('Online TTS failed:', err);
-        });
     }
     
     speakCurrent() {
-        if (this.currentQuestion) this.speak(this.currentQuestion.target.char);
+        if (!this.currentQuestion) return;
+        
+        // 停止上一次播放
+        if (this._currentAudio) {
+            this._currentAudio.pause();
+            this._currentAudio = null;
+        }
+        
+        const text = this.currentQuestion.target.char;
+        const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&type=1`;
+        const audio = new Audio(url);
+        this._currentAudio = audio;
+        // 喇叭按钮点击 = 用户手势上下文，play() 一定成功
+        audio.play().catch(err => console.warn('Speaker play failed:', err));
     }
 }
